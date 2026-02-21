@@ -4,19 +4,15 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
+  apiKey: "AIzaSyBPiIhH7fXM9aXuM0SfpNFyiGZ9y1cpTbA",
+  authDomain: "neuralprep.firebaseapp.com",
+  projectId: "neuralprep",
+  storageBucket: "neuralprep.firebasestorage.app",
+  messagingSenderId: "960861808988",
+  appId: "1:960861808988:web:1bf44da7647cbf1c013999"
 };
 
-const isFirebaseConfigured = !!(
-  firebaseConfig.apiKey && 
-  firebaseConfig.apiKey !== "undefined" &&
-  firebaseConfig.projectId
-);
+const isFirebaseConfigured = true; // Hardcoded keys provided
 
 // Initialize Firebase only if config is present
 const app = isFirebaseConfigured ? initializeApp(firebaseConfig) : null;

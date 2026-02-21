@@ -132,10 +132,35 @@ const AppContent: React.FC<{
   initialChatMessage: string | null;
   setInitialChatMessage: (msg: string | null) => void;
 }> = ({ state, updateState, openChatWithContext, isChatOpen, setIsChatOpen, initialChatMessage, setInitialChatMessage }) => {
-  const { user, loading: authLoading, signOut } = useAuth();
+  const { user, loading: authLoading, signOut, isConfigured } = useAuth();
+  const [bypassAuth, setBypassAuth] = useState(() => {
+    // Persist bypass state in session storage to prevent reset on refresh
+    return sessionStorage.getItem('neural_bypass') === 'true';
+  });
   const location = useLocation();
   const theme = THEMES[state.theme];
   const isQuizMode = location.pathname === '/quiz';
+
+  const handleBypass = () => {
+    sessionStorage.setItem('neural_bypass', 'true');
+    setBypassAuth(true);
+  };
+
+  useEffect(() => {
+    console.log("Auth State Debug:", { 
+      user: user?.email, 
+      authLoading, 
+      bypassAuth, 
+      isConfigured,
+      path: location.pathname 
+    });
+  }, [user, authLoading, bypassAuth, isConfigured, location]);
+
+  const handleSignOut = async () => {
+    sessionStorage.removeItem('neural_bypass');
+    setBypassAuth(false);
+    await signOut();
+  };
 
   if (authLoading) {
     return (
@@ -149,8 +174,9 @@ const AppContent: React.FC<{
     );
   }
 
-  if (!user) {
-    return <AuthView onSuccess={() => {}} />;
+  // If not logged in AND not bypassed, show AuthView
+  if (!user && !bypassAuth) {
+    return <AuthView onSuccess={handleBypass} />;
   }
 
   return (
@@ -188,12 +214,12 @@ const AppContent: React.FC<{
                 <img src={state.user.avatar} className="w-7 h-7 rounded-full border border-white/20" alt="Profile" />
                 <div className="hidden md:block text-left">
                    <p className="text-[11px] font-bold uppercase tracking-widest opacity-40 leading-none">Level {state.user.level}</p>
-                   <span className="text-sm font-bold truncate max-w-[80px] block">{state.user.name}</span>
+                   <span className="text-sm font-bold truncate max-w-[80px] block">{user?.displayName || state.user.name}</span>
                 </div>
               </Link>
               <div className="absolute top-full right-0 mt-2 w-48 glass rounded-2xl border border-white/10 p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                 <button 
-                  onClick={signOut}
+                  onClick={handleSignOut}
                   className="w-full flex items-center gap-3 px-4 py-3 hover:bg-rose-500/10 text-rose-400 rounded-xl transition-colors font-bold text-xs uppercase tracking-widest"
                 >
                   <CloudOff className="w-4 h-4" /> Terminate Link
@@ -277,14 +303,33 @@ const AppWithAuth: React.FC<{
 }> = ({ state, setState, isInitializing, setIsInitializing, isChatOpen, setIsChatOpen, initialChatMessage, setInitialChatMessage }) => {
   const { user, userData, saveUserData } = useAuth();
 
+  const [prevUser, setPrevUser] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Reset state when user changes from logged out to logged in
+    // to ensure we don't show stale local data while waiting for cloud data.
+    if (user && !prevUser) {
+      setState(null);
+      setIsInitializing(true);
+    }
+    setPrevUser(user?.uid || null);
+  }, [user, prevUser]);
+
   useEffect(() => {
     async function init() {
+      console.log("Neural Initialization: Starting...", { user: user?.uid, hasUserData: !!userData });
       try {
-        if (user && userData) {
-          // If logged in and we have cloud data, use it
-          setState(userData);
-        } else if (!user) {
-          // If not logged in, use local data
+        if (user) {
+          if (userData) {
+            console.log("Neural Initialization: Using Cloud Data");
+            setState(userData);
+          } else {
+            console.log("Neural Initialization: Waiting for Cloud Data...");
+            // Optionally keep the local state if it's already there, 
+            // but we want to ensure we don't show stale data if possible.
+          }
+        } else {
+          console.log("Neural Initialization: Using Local Data (Not Logged In)");
           const profile = loadProfileFromLocalStorage();
           const vault = await loadVaultFromIndexedDB();
 
@@ -307,6 +352,7 @@ const AppWithAuth: React.FC<{
       } catch (e) {
         console.error("Neural Initialization Critical Failure", e);
       } finally {
+        console.log("Neural Initialization: Complete");
         setIsInitializing(false);
       }
     }

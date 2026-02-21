@@ -46,6 +46,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (docSnap.exists()) {
             setUserData(docSnap.data() as AppState);
           }
+        }, (error) => {
+          if (error.code === 'permission-denied') {
+            console.warn("Firestore access denied. Check Security Rules.");
+          } else {
+            console.error("Firestore Snapshot Error:", error);
+          }
         });
         
         setLoading(false);
@@ -64,7 +70,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const userDocRef = doc(db, 'users', user.uid);
       await setDoc(userDocRef, data, { merge: true });
-    } catch (error) {
+    } catch (error: any) {
+      if (error.code === 'permission-denied') {
+        // Silent fail for permissions to avoid console spam during rule updates
+        return;
+      }
       console.error("Error saving user data:", error);
     }
   };
