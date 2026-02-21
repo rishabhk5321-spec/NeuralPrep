@@ -7,10 +7,15 @@ import { ChatMessage } from "../types";
  */
 const getAiInstance = () => {
   // Check multiple possible locations for the key
-  const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+  // 1. import.meta.env (Vite standard)
+  // 2. process.env (mapped by vite.config.ts)
+  const apiKey = 
+    (import.meta.env.VITE_GEMINI_API_KEY) || 
+    (process.env.GEMINI_API_KEY) || 
+    (process.env.API_KEY);
   
   if (!apiKey || apiKey === "undefined" || apiKey === "") {
-    throw new Error("Neural Link Offline: GEMINI_API_KEY is missing in Vercel Environment Variables. Please add it and redeploy.");
+    throw new Error("NEURAL LINK OFFLINE: The Gemini API Key is missing. Please ensure GEMINI_API_KEY is set in your Vercel Environment Variables and that you have REDEPLOYED the app.");
   }
   return new GoogleGenAI({ apiKey });
 };

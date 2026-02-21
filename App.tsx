@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { AppState, ThemeId } from './types';
 import { INITIAL_USER, THEMES } from './constants';
+import { AuthProvider, useAuth } from './services/AuthContext';
+import AuthView from './views/AuthView';
 import Dashboard from './views/Dashboard';
 import QuizEngine from './views/QuizEngine';
 import FlashcardDeck from './views/FlashcardDeck';
@@ -130,9 +132,26 @@ const AppContent: React.FC<{
   initialChatMessage: string | null;
   setInitialChatMessage: (msg: string | null) => void;
 }> = ({ state, updateState, openChatWithContext, isChatOpen, setIsChatOpen, initialChatMessage, setInitialChatMessage }) => {
+  const { user, loading: authLoading, signOut } = useAuth();
   const location = useLocation();
   const theme = THEMES[state.theme];
   const isQuizMode = location.pathname === '/quiz';
+
+  if (authLoading) {
+    return (
+      <div className="fixed inset-0 bg-slate-950 flex flex-col items-center justify-center gap-6">
+        <div className="relative">
+          <Loader2 className="w-12 h-12 text-indigo-500 animate-spin" />
+          <Brain className="absolute inset-0 m-auto w-5 h-5 text-white animate-pulse" />
+        </div>
+        <p className="text-indigo-400 font-black uppercase tracking-[0.4em] text-[10px] animate-pulse">Authenticating Neural Link...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthView onSuccess={() => {}} />;
+  }
 
   return (
     <div className={`min-h-screen transition-all duration-500 bg-gradient-to-br ${theme.bgGradient} ${theme.textColor} animate-gradient relative overflow-x-hidden`}>
@@ -164,13 +183,23 @@ const AppContent: React.FC<{
               <Bot className={`w-6 h-6 group-hover:text-${theme.accentColor} transition-colors`} />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
             </button>
-            <Link to="/settings" className="flex items-center gap-3 glass px-4 py-2 rounded-full hover:bg-white/10 transition-colors">
-              <img src={state.user.avatar} className="w-7 h-7 rounded-full border border-white/20" alt="Profile" />
-              <div className="hidden md:block text-left">
-                 <p className="text-[11px] font-bold uppercase tracking-widest opacity-40 leading-none">Level {state.user.level}</p>
-                 <span className="text-sm font-bold truncate max-w-[80px] block">{state.user.name}</span>
+            <div className="group relative">
+              <Link to="/settings" className="flex items-center gap-3 glass px-4 py-2 rounded-full hover:bg-white/10 transition-colors">
+                <img src={state.user.avatar} className="w-7 h-7 rounded-full border border-white/20" alt="Profile" />
+                <div className="hidden md:block text-left">
+                   <p className="text-[11px] font-bold uppercase tracking-widest opacity-40 leading-none">Level {state.user.level}</p>
+                   <span className="text-sm font-bold truncate max-w-[80px] block">{state.user.name}</span>
+                </div>
+              </Link>
+              <div className="absolute top-full right-0 mt-2 w-48 glass rounded-2xl border border-white/10 p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                <button 
+                  onClick={signOut}
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-rose-500/10 text-rose-400 rounded-xl transition-colors font-bold text-xs uppercase tracking-widest"
+                >
+                  <CloudOff className="w-4 h-4" /> Terminate Link
+                </button>
               </div>
-            </Link>
+            </div>
           </div>
         </nav>
       )}
@@ -218,27 +247,63 @@ const App: React.FC = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [initialChatMessage, setInitialChatMessage] = useState<string | null>(null);
 
+  return (
+    <AuthProvider>
+      <HashRouter>
+        <AppWithAuth 
+          state={state} 
+          setState={setState}
+          isInitializing={isInitializing}
+          setIsInitializing={setIsInitializing}
+          isChatOpen={isChatOpen}
+          setIsChatOpen={setIsChatOpen}
+          initialChatMessage={initialChatMessage}
+          setInitialChatMessage={setInitialChatMessage}
+        />
+      </HashRouter>
+    </AuthProvider>
+  );
+};
+
+const AppWithAuth: React.FC<{
+  state: AppState | null;
+  setState: React.Dispatch<React.SetStateAction<AppState | null>>;
+  isInitializing: boolean;
+  setIsInitializing: React.Dispatch<React.SetStateAction<boolean>>;
+  isChatOpen: boolean;
+  setIsChatOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  initialChatMessage: string | null;
+  setInitialChatMessage: React.Dispatch<React.SetStateAction<string | null>>;
+}> = ({ state, setState, isInitializing, setIsInitializing, isChatOpen, setIsChatOpen, initialChatMessage, setInitialChatMessage }) => {
+  const { user, userData, saveUserData } = useAuth();
+
   useEffect(() => {
     async function init() {
       try {
-        const profile = loadProfileFromLocalStorage();
-        const vault = await loadVaultFromIndexedDB();
+        if (user && userData) {
+          // If logged in and we have cloud data, use it
+          setState(userData);
+        } else if (!user) {
+          // If not logged in, use local data
+          const profile = loadProfileFromLocalStorage();
+          const vault = await loadVaultFromIndexedDB();
 
-        const defaultState: AppState = {
-          user: { ...INITIAL_USER, streak: 1, lastVisit: new Date().toISOString() },
-          theme: ThemeId.DeepSpace,
-          quizzes: [],
-          flashcards: [],
-          summaries: [],
-          memory: { attempts: [], mistakeStats: {}, topicStats: {} },
-          devMode: false
-        };
+          const defaultState: AppState = {
+            user: { ...INITIAL_USER, streak: 1, lastVisit: new Date().toISOString() },
+            theme: ThemeId.DeepSpace,
+            quizzes: [],
+            flashcards: [],
+            summaries: [],
+            memory: { attempts: [], mistakeStats: {}, topicStats: {} },
+            devMode: false
+          };
 
-        setState({
-          ...defaultState,
-          ...profile,
-          ...vault
-        });
+          setState({
+            ...defaultState,
+            ...profile,
+            ...vault
+          });
+        }
       } catch (e) {
         console.error("Neural Initialization Critical Failure", e);
       } finally {
@@ -246,13 +311,18 @@ const App: React.FC = () => {
       }
     }
     init();
-  }, []);
+  }, [user, userData]);
 
   useEffect(() => {
     if (!state) return;
     saveProfileToLocalStorage(state);
     saveVaultToIndexedDB(state);
-  }, [state]);
+    
+    // Sync to cloud if logged in
+    if (user) {
+      saveUserData(state);
+    }
+  }, [state, user, saveUserData]);
 
   const updateState = (updater: Partial<AppState> | ((prev: AppState) => AppState)) => {
     if (!state) return;
@@ -281,17 +351,15 @@ const App: React.FC = () => {
   }
 
   return (
-    <HashRouter>
-      <AppContent 
-        state={state} 
-        updateState={updateState} 
-        openChatWithContext={openChatWithContext}
-        isChatOpen={isChatOpen}
-        setIsChatOpen={setIsChatOpen}
-        initialChatMessage={initialChatMessage}
-        setInitialChatMessage={setInitialChatMessage}
-      />
-    </HashRouter>
+    <AppContent 
+      state={state} 
+      updateState={updateState} 
+      openChatWithContext={openChatWithContext}
+      isChatOpen={isChatOpen}
+      setIsChatOpen={setIsChatOpen}
+      initialChatMessage={initialChatMessage}
+      setInitialChatMessage={setInitialChatMessage}
+    />
   );
 };
 
