@@ -6,9 +6,11 @@ import { ChatMessage } from "../types";
  * Always creates a new instance to ensure we use the most up-to-date key
  */
 const getAiInstance = () => {
-  const apiKey = process.env.API_KEY;
+  // Check multiple possible locations for the key
+  const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+  
   if (!apiKey || apiKey === "undefined" || apiKey === "") {
-    throw new Error("Neural Link Offline: API_KEY is missing. Use the 'Link Project' protocol.");
+    throw new Error("Neural Link Offline: GEMINI_API_KEY is missing in Vercel Environment Variables. Please add it and redeploy.");
   }
   return new GoogleGenAI({ apiKey });
 };
