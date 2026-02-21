@@ -1,0 +1,18 @@
+
+{
+  "name": "NeuralPrep | AI Study Platform",
+  "short_name": "NeuralPrep",
+  "description": "AI-Powered Neural Study Platform that transforms PDFs into interactive quizzes and summaries.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#6366f1",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/5968/5968242.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "name": "Copy of NeuralPrep4.0",
+  "description": "A futuristic AI-powered neural study platform that transforms PDF documents into interactive cognitive maps, quizzes, and revision segments with advanced scholastic diagnostics.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
