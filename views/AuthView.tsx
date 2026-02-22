@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword,
-  updateProfile
+  updateProfile,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { auth, db, isFirebaseConfigured } from '../services/firebase';
 import { doc, setDoc } from 'firebase/firestore';
@@ -18,7 +19,10 @@ import {
   Loader2,
   ShieldCheck,
   Dna,
-  AlertTriangle
+  AlertTriangle,
+  Eye,
+  EyeOff,
+  ChevronLeft
 } from 'lucide-react';
 import { ThemeId } from '../types';
 
@@ -28,14 +32,52 @@ interface AuthViewProps {
 
 const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isForgotMode, setIsForgotMode] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const getErrorMessage = (err: any) => {
+    const code = err.code;
+    switch (code) {
+      case 'auth/user-not-found': return 'Neural profile not found.';
+      case 'auth/wrong-password': return 'Invalid security key.';
+      case 'auth/email-already-in-use': return 'Email already linked to a profile.';
+      case 'auth/weak-password': return 'Security key is too weak (min 6 chars).';
+      case 'auth/invalid-email': return 'Invalid email format.';
+      default: return err.message || 'Authentication failed';
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      setError("Please enter your email address.");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      if (auth) {
+        await sendPasswordResetEmail(auth, email);
+        setSuccessMessage("Reset link sent to your email.");
+        setTimeout(() => setIsForgotMode(false), 3000);
+      }
+    } catch (err: any) {
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isForgotMode) return handleResetPassword(e);
+
     if (!isFirebaseConfigured || !auth || !db) {
       setError("Firebase is not configured. Please add environment variables.");
       return;
@@ -81,7 +123,7 @@ const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
       }
       onSuccess();
     } catch (err: any) {
-      setError(err.message || 'Authentication failed');
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -148,60 +190,109 @@ const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
               Neural<span className="text-rose-500">Prep</span>
             </h1>
             <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.4em] mt-2">
-              {isLogin ? 'Establish Synaptic Link' : 'Initialize Neural Pathway'}
+              {isForgotMode ? 'Restore Neural Access' : isLogin ? 'Establish Synaptic Link' : 'Initialize Neural Pathway'}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <AnimatePresence mode="wait">
-              {!isLogin && (
+              {isForgotMode ? (
                 <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="relative"
+                  key="forgot"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  className="space-y-4"
                 >
-                  <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
-                  <input
-                    type="text"
-                    placeholder="FULL NAME"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 p-4 pl-12 rounded-2xl text-white font-bold focus:outline-none focus:border-rose-500 transition-all"
-                  />
+                  <p className="text-white/60 text-xs text-center mb-6">
+                    Enter your email to receive a restoration link for your neural profile.
+                  </p>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
+                    <input
+                      type="email"
+                      placeholder="EMAIL ADDRESS"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 p-4 pl-12 rounded-2xl text-white font-bold focus:outline-none focus:border-rose-500 transition-all"
+                    />
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key={isLogin ? "login" : "signup"}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-4"
+                >
+                  {!isLogin && (
+                    <div className="relative">
+                      <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
+                      <input
+                        type="text"
+                        placeholder="FULL NAME"
+                        required
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 p-4 pl-12 rounded-2xl text-white font-bold focus:outline-none focus:border-rose-500 transition-all"
+                      />
+                    </div>
+                  )}
+
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
+                    <input
+                      type="email"
+                      placeholder="EMAIL ADDRESS"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 p-4 pl-12 rounded-2xl text-white font-bold focus:outline-none focus:border-rose-500 transition-all"
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="SECURITY KEY"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 p-4 pl-12 pr-12 rounded-2xl text-white font-bold focus:outline-none focus:border-rose-500 transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
-              <input
-                type="email"
-                placeholder="EMAIL ADDRESS"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 p-4 pl-12 rounded-2xl text-white font-bold focus:outline-none focus:border-rose-500 transition-all"
-              />
-            </div>
-
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
-              <input
-                type="password"
-                placeholder="SECURITY KEY"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 p-4 pl-12 rounded-2xl text-white font-bold focus:outline-none focus:border-rose-500 transition-all"
-              />
-            </div>
-
             {error && (
-              <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-500 text-xs font-bold text-center">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-500 text-xs font-bold text-center"
+              >
                 {error}
-              </div>
+              </motion.div>
+            )}
+
+            {successMessage && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-500 text-xs font-bold text-center"
+              >
+                {successMessage}
+              </motion.div>
             )}
 
             <button
@@ -213,19 +304,40 @@ const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
-                  {isLogin ? 'Connect' : 'Initialize'} <ArrowRight className="w-5 h-5" />
+                  {isForgotMode ? 'Send Link' : isLogin ? 'Connect' : 'Initialize'} <ArrowRight className="w-5 h-5" />
                 </>
               )}
             </button>
           </form>
 
           <div className="mt-8 pt-8 border-t border-white/5 flex flex-col items-center gap-4">
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-white/40 hover:text-white text-[10px] font-black uppercase tracking-widest transition-all"
-            >
-              {isLogin ? "Don't have a neural profile? Create one" : "Already have a profile? Link here"}
-            </button>
+            {isForgotMode ? (
+              <button
+                onClick={() => setIsForgotMode(false)}
+                className="flex items-center gap-2 text-white/40 hover:text-white text-[10px] font-black uppercase tracking-widest transition-all"
+              >
+                <ChevronLeft className="w-3 h-3" /> Back to Connection
+              </button>
+            ) : (
+              <>
+                <div className="flex flex-col items-center gap-2">
+                  <button
+                    onClick={() => setIsLogin(!isLogin)}
+                    className="text-white/40 hover:text-white text-[10px] font-black uppercase tracking-widest transition-all"
+                  >
+                    {isLogin ? "Don't have a neural profile? Create one" : "Already have a profile? Link here"}
+                  </button>
+                  {isLogin && (
+                    <button
+                      onClick={() => setIsForgotMode(true)}
+                      className="text-white/20 hover:text-white/40 text-[10px] font-black uppercase tracking-widest transition-all"
+                    >
+                      Forgot Security Key?
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
             
             <div className="flex items-center gap-6 opacity-20">
               <ShieldCheck className="w-4 h-4 text-white" />

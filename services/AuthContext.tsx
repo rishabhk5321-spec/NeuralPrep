@@ -36,13 +36,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    let unsubDoc: (() => void) | null = null;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       
+      // Clean up previous listener if it exists
+      if (unsubDoc) {
+        unsubDoc();
+        unsubDoc = null;
+      }
+
       if (currentUser) {
-        // Listen for real-time updates to user data
         const userDocRef = doc(db, 'users', currentUser.uid);
-        const unsubDoc = onSnapshot(userDocRef, (docSnap) => {
+        unsubDoc = onSnapshot(userDocRef, (docSnap) => {
           if (docSnap.exists()) {
             setUserData(docSnap.data() as AppState);
           }
@@ -53,19 +60,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.error("Firestore Snapshot Error:", error);
           }
         });
-        
-        setLoading(false);
-        return () => unsubDoc();
       } else {
         setUserData(null);
-        setLoading(false);
       }
+      setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribeAuth();
+      if (unsubDoc) unsubDoc();
+    };
   }, []);
 
-  const saveUserData = async (data: AppState) => {
+  const saveUserData = React.useCallback(async (data: AppState) => {
     if (!user || !db) return;
     try {
       const userDocRef = doc(db, 'users', user.uid);
@@ -77,11 +84,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       console.error("Error saving user data:", error);
     }
-  };
+  }, [user]);
 
-  const signOut = async () => {
+  const signOut = React.useCallback(async () => {
     if (auth) await firebaseSignOut(auth);
-  };
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, loading, userData, saveUserData, signOut, isConfigured: isFirebaseConfigured }}>

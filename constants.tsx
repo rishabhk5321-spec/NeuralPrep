@@ -28,6 +28,26 @@ export const THEMES: Record<ThemeId, ThemeConfig> = {
     cardBg: 'bg-teal-950/20',
     textColor: 'text-teal-50',
     borderColor: 'border-teal-500/30'
+  },
+  [ThemeId.NebulaGold]: {
+    id: ThemeId.NebulaGold,
+    name: 'Nebula Gold',
+    bgGradient: 'from-amber-950 via-slate-900 to-amber-950',
+    accentColor: 'amber-500',
+    cardBg: 'bg-amber-950/20',
+    textColor: 'text-amber-50',
+    borderColor: 'border-amber-500/30',
+    unlockLevel: 5
+  },
+  [ThemeId.CyberGrid]: {
+    id: ThemeId.CyberGrid,
+    name: 'Cyber Grid',
+    bgGradient: 'from-cyan-950 via-slate-950 to-cyan-950',
+    accentColor: 'cyan-400',
+    cardBg: 'bg-cyan-950/20',
+    textColor: 'text-cyan-50',
+    borderColor: 'border-cyan-400/30',
+    unlockLevel: 10
   }
 };
 
@@ -40,5 +60,7 @@ export const INITIAL_USER: any = {
   avgScore: 0,
   xp: 0,
   level: 1,
-  lastVisit: new Date().toISOString()
+  lastVisit: new Date().toISOString(),
+  badges: [],
+  unlockedThemes: [ThemeId.DeepSpace, ThemeId.CrimsonFlash, ThemeId.EmeraldLight]
 };

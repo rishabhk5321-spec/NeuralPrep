@@ -34,7 +34,8 @@ import {
   Layers,
   Loader2
 } from 'lucide-react';
-import { AppState, Quiz, Question, Attempt, QuizHistoryEntry } from '../types';
+import { motion } from 'motion/react';
+import { AppState, Quiz, Question, Attempt, QuizHistoryEntry, ThemeId, Badge } from '../types';
 import { THEMES } from '../constants';
 import { playCorrectSound, playWrongSound, playClickSound } from '../services/audioService';
 import { submitAttempt } from '../services/memoryService';
@@ -209,14 +210,42 @@ const QuizEngine: React.FC<QuizEngineProps> = ({ state, updateState, onDiscuss }
     const xpGained = correctCount * 15;
     const timeTakenTotal = mode === 'timed' ? 600 - timer : timer;
 
-    const newHistoryEntry: QuizHistoryEntry = {
-      score: scorePct,
-      timestamp: timestamp,
-      answers: userAnswers,
-      timeTaken: timeTakenTotal
-    };
-
     updateState((prev: AppState) => {
+      const newXp = prev.user.xp + xpGained;
+      const newLevel = Math.floor(newXp / 1000) + 1;
+      const currentBadges = [...(prev.user.badges || [])];
+      const currentUnlockedThemes = [...(prev.user.unlockedThemes || [])];
+
+      // Badge: Perfect Sync
+      if (scorePct === 100 && quiz.questions.length >= 20 && !currentBadges.find(b => b.id === 'perfect_sync')) {
+        currentBadges.push({
+          id: 'perfect_sync',
+          name: 'Perfect Sync',
+          description: '100% accuracy on a 20+ question quiz',
+          icon: 'Target',
+          unlockedAt: timestamp
+        });
+      }
+
+      // Badge: Speed Demon
+      if (mode === 'timed' && timeTakenTotal < 300 && scorePct >= 80 && !currentBadges.find(b => b.id === 'speed_demon')) {
+        currentBadges.push({
+          id: 'speed_demon',
+          name: 'Speed Demon',
+          description: 'Finished a timed quiz in under 5 minutes with 80%+ score',
+          icon: 'Zap',
+          unlockedAt: timestamp
+        });
+      }
+
+      // Theme Unlocks
+      if (newLevel >= 5 && !currentUnlockedThemes.includes(ThemeId.NebulaGold)) {
+        currentUnlockedThemes.push(ThemeId.NebulaGold);
+      }
+      if (newLevel >= 10 && !currentUnlockedThemes.includes(ThemeId.CyberGrid)) {
+        currentUnlockedThemes.push(ThemeId.CyberGrid);
+      }
+
       const updatedQuizzes = prev.quizzes.map(q => {
         if (q.id === quizId) {
           const history = q.history || [];
@@ -224,7 +253,12 @@ const QuizEngine: React.FC<QuizEngineProps> = ({ state, updateState, onDiscuss }
             ...q, 
             score: scorePct, 
             lastAnswers: userAnswers,
-            history: [newHistoryEntry, ...history] 
+            history: [{
+              score: scorePct,
+              timestamp: timestamp,
+              answers: userAnswers,
+              timeTaken: timeTakenTotal
+            }, ...history] 
           };
         }
         return q;
@@ -244,8 +278,10 @@ const QuizEngine: React.FC<QuizEngineProps> = ({ state, updateState, onDiscuss }
           completedTests: prev.user.completedTests + 1,
           avgScore: Math.round(((prev.user.avgScore * prev.user.completedTests) + scorePct) / (prev.user.completedTests + 1)),
           accuracy: scorePct,
-          xp: prev.user.xp + xpGained,
-          level: Math.floor((prev.user.xp + xpGained) / 1000) + 1
+          xp: newXp,
+          level: newLevel,
+          badges: currentBadges,
+          unlockedThemes: currentUnlockedThemes
         }
       };
     });
@@ -476,43 +512,46 @@ const QuizEngine: React.FC<QuizEngineProps> = ({ state, updateState, onDiscuss }
     const scoreColor = scorePct >= 80 ? 'emerald' : scorePct >= 50 ? 'amber' : 'rose';
     
     return (
-      <div className="fixed inset-0 z-[100] bg-[#08080c] flex flex-col items-center p-2 sm:p-4 lg:p-6 overflow-hidden selection:bg-rose-500/30">
-        <div className="max-w-[1400px] w-full h-full flex flex-col animate-in zoom-in-95 duration-500 gap-4">
-          <div className="glass p-4 sm:p-6 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden shrink-0">
-             <div className={`absolute top-0 right-0 w-[400px] h-[400px] bg-${scoreColor}-500/5 rounded-full blur-[100px] -z-10 -translate-y-1/2 translate-x-1/2`}></div>
-             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="flex items-center gap-6">
+      <div className="fixed inset-0 z-[100] bg-[#050508] flex flex-col items-center p-4 sm:p-6 lg:p-8 overflow-hidden selection:bg-rose-500/30">
+        <div className="max-w-[1400px] w-full h-full flex flex-col animate-in zoom-in-95 duration-700 gap-6">
+          
+          {/* HEADER - DIAGNOSTIC OVERVIEW */}
+          <div className="glass p-8 sm:p-10 rounded-[3rem] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] relative overflow-hidden shrink-0">
+             <div className={`absolute top-0 right-0 w-[600px] h-[600px] bg-${scoreColor}-500/5 rounded-full blur-[120px] -z-10 -translate-y-1/2 translate-x-1/2`}></div>
+             <div className="flex flex-col lg:flex-row items-center justify-between gap-10">
+                <div className="flex flex-col sm:flex-row items-center gap-10">
                    <div className="relative shrink-0">
-                      <svg className="w-28 h-28 -rotate-90 filter drop-shadow-[0_0_15px_rgba(0,0,0,0.4)]">
-                        <circle cx="56" cy="56" r="48" className="stroke-white/5 fill-none" strokeWidth="10" />
-                        <circle cx="56" cy="56" r="48" className={`stroke-${scoreColor}-500 fill-none transition-all duration-1000 ease-out`} 
-                          strokeWidth="10" strokeDasharray={301.6} strokeDashoffset={301.6 - (301.6 * scorePct) / 100} strokeLinecap="round" />
+                      <div className="absolute inset-0 bg-white/5 rounded-full blur-2xl"></div>
+                      <svg className="w-40 h-40 -rotate-90 relative z-10">
+                        <circle cx="80" cy="80" r="72" className="stroke-white/5 fill-none" strokeWidth="12" />
+                        <circle cx="80" cy="80" r="72" className={`stroke-${scoreColor}-500 fill-none transition-all duration-1500 ease-out`} 
+                          strokeWidth="12" strokeDasharray={452.4} strokeDashoffset={452.4 - (452.4 * scorePct) / 100} strokeLinecap="round" />
                       </svg>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-2xl font-black text-white tracking-tighter">{scorePct}%</span>
-                        <span className="text-[7px] font-black uppercase text-white/30 tracking-[0.2em]">Efficiency</span>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
+                        <span className="text-4xl font-black text-white tracking-tighter">{scorePct}%</span>
+                        <span className="text-[8px] font-black uppercase text-white/30 tracking-[0.3em] mt-1">Efficiency</span>
                       </div>
                    </div>
-                   <div className="space-y-2">
-                      <div className="text-center md:text-left">
-                        <p className="text-[8px] font-black uppercase text-indigo-400 tracking-[0.4em] mb-1">
-                          {historyEntry ? `Historical Report: ${new Date(historyEntry.timestamp).toLocaleString()}` : 'Neural Mission Terminal'}
+                   <div className="space-y-4 text-center sm:text-left">
+                      <div>
+                        <p className="text-[10px] font-black uppercase text-rose-500 tracking-[0.5em] mb-2 flex items-center justify-center sm:justify-start gap-2">
+                          <Activity className="w-3 h-3" /> {historyEntry ? 'Historical Archive' : 'Neural Mission Terminal'}
                         </p>
-                        <h1 className="text-xl md:text-2xl font-black text-white leading-none uppercase tracking-tighter truncate max-w-lg">{quiz.title}</h1>
+                        <h1 className="text-3xl sm:text-4xl font-black text-white leading-none uppercase tracking-tighter max-w-2xl">{quiz.title}</h1>
                       </div>
-                      <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                         <div className="glass px-3 py-1.5 rounded-xl flex items-center gap-2 border-white/10">
-                            <Activity className="w-3 h-3 text-indigo-400" />
-                            <span className="text-[8px] font-black uppercase text-white/50 tracking-widest">Process: <span className="text-white">COMPLETED</span></span>
+                      <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
+                         <div className="glass px-4 py-2 rounded-2xl flex items-center gap-3 border-white/10">
+                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                            <span className="text-[9px] font-black uppercase text-white/50 tracking-widest">Protocol: <span className="text-white">COMPLETED</span></span>
                          </div>
-                         <div className="glass px-3 py-1.5 rounded-xl flex items-center gap-2 border-white/10">
-                            <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                            <span className="text-[8px] font-black uppercase text-white/50 tracking-widest">Verify: <span className="text-white">VALIDATED</span></span>
+                         <div className="glass px-4 py-2 rounded-2xl flex items-center gap-3 border-white/10">
+                            <ShieldCheck className="w-4 h-4 text-indigo-400" />
+                            <span className="text-[9px] font-black uppercase text-white/50 tracking-widest">Integrity: <span className="text-white">VALIDATED</span></span>
                          </div>
                       </div>
                    </div>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full md:w-auto">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full lg:w-auto">
                   <CompactSummaryStat icon={Target} label="Node Hits" value={`${correctCount}/${quiz.questions.length}`} color="emerald" />
                   <CompactSummaryStat icon={Clock} label="Latency" value={formatTime(historyEntry?.timeTaken || (mode === 'timed' ? 600 - timer : timer))} color="cyan" />
                   <CompactSummaryStat icon={Award} label="XP Net" value={`+${correctCount * 15}`} color="amber" />
@@ -521,12 +560,23 @@ const QuizEngine: React.FC<QuizEngineProps> = ({ state, updateState, onDiscuss }
              </div>
           </div>
 
-          <div className="flex-1 min-h-0 grid grid-cols-1 gap-4">
-             <div className="glass p-6 rounded-3xl border border-white/5 flex flex-col overflow-hidden shadow-inner bg-[#0c0c14]/40">
-                <div className="flex items-center justify-between mb-4 shrink-0">
-                   <div className="flex items-center gap-3"><FileText className="w-5 h-5 text-white/10" /><h2 className="text-xl font-black text-white uppercase tracking-tighter">Diagnostic Node Log</h2></div>
+          {/* CONTENT - LOG ENTRIES */}
+          <div className="flex-1 min-h-0">
+             <div className="glass h-full rounded-[3rem] border border-white/5 flex flex-col overflow-hidden shadow-2xl bg-[#0c0c14]/60">
+                <div className="p-8 border-b border-white/5 flex items-center justify-between shrink-0">
+                   <div className="flex items-center gap-4">
+                      <div className="p-3 bg-white/5 rounded-2xl"><FileText className="w-6 h-6 text-white/40" /></div>
+                      <div>
+                        <h2 className="text-2xl font-black text-white uppercase tracking-tighter leading-none">Diagnostic Node Log</h2>
+                        <p className="text-[9px] font-black uppercase text-white/20 tracking-widest mt-1">Detailed synaptic response analysis</p>
+                      </div>
+                   </div>
+                   <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></div>
+                      <span className="text-[8px] font-black uppercase text-rose-500 tracking-widest">Live Analysis</span>
+                   </div>
                 </div>
-                <div className="flex-1 overflow-y-auto scroll-slim space-y-3 pr-2">
+                <div className="flex-1 overflow-y-auto scroll-slim p-8 space-y-4">
                   {quiz.questions.map((q, idx) => (
                     <CompactNodeCard 
                       key={q.id} index={idx + 1} question={q} 
@@ -545,11 +595,28 @@ const QuizEngine: React.FC<QuizEngineProps> = ({ state, updateState, onDiscuss }
              </div>
           </div>
 
-          <div className="flex items-center justify-between py-4 shrink-0 border-t border-white/5">
-             <div className="flex items-center gap-3 text-[8px] font-black uppercase tracking-[0.3em] text-white/20"><Keyboard className="w-3.5 h-3.5 opacity-50" /> Protocol Ready</div>
+          {/* FOOTER - PROTOCOL CONTROLS */}
+          <div className="flex items-center justify-between py-6 shrink-0 border-t border-white/5">
+             <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em] text-white/20">
+                <div className="flex items-center gap-2"><Keyboard className="w-4 h-4 opacity-50" /> Protocol Ready</div>
+                <div className="w-1 h-1 rounded-full bg-white/10"></div>
+                <div className="flex items-center gap-2"><Bot className="w-4 h-4 opacity-50" /> AI Diagnostic Active</div>
+             </div>
              <div className="flex gap-4">
-                <button onClick={() => navigate('/')} className="px-6 py-3.5 glass border-white/10 rounded-xl text-[9px] font-black uppercase tracking-[0.3em] text-white/50 hover:text-white hover:bg-white/10 flex items-center gap-2 transition-all group shadow-lg"><Home className="w-4 h-4" /> HQ</button>
-                {!historyEntry && <button onClick={() => window.location.reload()} className="px-10 py-3.5 bg-rose-600 text-white rounded-xl text-[9px] font-black uppercase tracking-[0.3em] flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-xl"><RotateCcw className="w-4 h-4" /> Rerun</button>}
+                <button 
+                  onClick={() => navigate('/')} 
+                  className="px-8 py-4 glass border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.4em] text-white/50 hover:text-white hover:bg-white/10 flex items-center gap-3 transition-all group shadow-xl"
+                >
+                  <Home className="w-5 h-5 group-hover:scale-110 transition-transform" /> Return to HQ
+                </button>
+                {!historyEntry && (
+                  <button 
+                    onClick={() => window.location.reload()} 
+                    className="px-12 py-4 bg-rose-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.4em] flex items-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-[0_0_40px_rgba(225,29,72,0.3)]"
+                  >
+                    <RotateCcw className="w-5 h-5" /> Rerun Mission
+                  </button>
+                )}
              </div>
           </div>
         </div>
@@ -566,63 +633,103 @@ const QuizEngine: React.FC<QuizEngineProps> = ({ state, updateState, onDiscuss }
     <div className="fixed inset-0 z-[100] bg-[#08080c] flex flex-col items-center justify-center p-2 sm:p-4 overflow-hidden">
       <div className="max-w-5xl w-full h-full glass bg-[#0d0d16]/80 p-4 sm:p-6 rounded-[2.5rem] border border-white/10 flex flex-col relative animate-in zoom-in-95 duration-500 shadow-[0_0_150px_rgba(0,0,0,0.8)]">
         
-        {/* TOP HUD BAR - COMPACT */}
-        <div className="flex items-center justify-between text-white shrink-0 mb-4">
-           <div className="flex items-center gap-6">
-              <div className="relative"><h2 className="text-2xl sm:text-3xl font-black tracking-tighter">NODE <span className="text-rose-500">{currentIndex + 1}</span></h2></div>
-              <div className="h-6 w-[2px] bg-white/10"></div>
-              <div className="hidden sm:flex flex-col">
-                 <p className="text-[8px] font-black uppercase tracking-[0.4em] text-white/30 leading-none mb-1.5">Neural Pathway Status</p>
-                 <div className="flex items-center gap-1">
+        {/* TOP HUD BAR - REFINED */}
+        <div className="flex items-center justify-between text-white shrink-0 mb-6 border-b border-white/5 pb-4">
+           <div className="flex items-center gap-8">
+              <div className="relative">
+                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-rose-500/50 mb-1">Neural Node</p>
+                <h2 className="text-4xl font-black tracking-tighter leading-none">
+                  <span className="opacity-20">0</span>{currentIndex + 1}
+                </h2>
+              </div>
+              <div className="h-10 w-[1px] bg-white/10"></div>
+              <div className="hidden lg:flex flex-col">
+                 <p className="text-[8px] font-black uppercase tracking-[0.4em] text-white/30 leading-none mb-2">Cognitive Synchronization</p>
+                 <div className="flex items-center gap-1.5">
                     {quiz.questions.map((_, i) => (
-                      <div key={i} className={`h-1 rounded-full transition-all duration-500 ${i === currentIndex ? 'bg-rose-500 w-8 shadow-[0_0_8px_rgba(244,63,94,0.5)]' : i < currentIndex ? 'bg-emerald-500 w-3' : 'bg-white/10 w-3'}`}></div>
+                      <div key={i} className={`h-1.5 rounded-full transition-all duration-700 ${i === currentIndex ? 'bg-rose-500 w-10 shadow-[0_0_15px_rgba(244,63,94,0.6)]' : i < currentIndex ? 'bg-emerald-500 w-4' : 'bg-white/10 w-4'}`}></div>
                     ))}
                  </div>
               </div>
            </div>
            
-           <div className="flex items-center gap-4">
+           <div className="flex items-center gap-6">
               <div className="flex flex-col items-end">
-                 <div className="flex items-center gap-2 text-2xl font-black tabular-nums tracking-tighter">
-                    <Clock className="w-5 h-5 text-rose-500" />
+                 <p className="text-[8px] font-black uppercase tracking-[0.4em] text-white/30 leading-none mb-1">Temporal Sync</p>
+                 <div className="flex items-center gap-3 text-3xl font-black tabular-nums tracking-tighter text-white">
+                    <Clock className="w-6 h-6 text-rose-500 animate-pulse" />
                     <span>{formatTime(timer)}</span>
                  </div>
               </div>
-              <button onClick={() => setIsPaused(true)} className="p-3 glass rounded-xl hover:bg-white/10 transition-all active:scale-90 group"><Pause className="w-5 h-5 text-white fill-current" /></button>
+              <button 
+                onClick={() => setIsPaused(true)} 
+                className="p-4 glass rounded-2xl hover:bg-white/10 transition-all active:scale-90 group border border-white/10"
+              >
+                <Pause className="w-6 h-6 text-white fill-current" />
+              </button>
            </div>
         </div>
 
-        {/* INTERACTIVE CORE - OPTIMIZED HEIGHT */}
+        {/* INTERACTIVE CORE - REFINED */}
         <div className="relative flex-1 flex flex-col min-h-0 overflow-hidden">
-           <div className="p-4 sm:p-6 border-l-4 border-rose-600 bg-white/[0.01] rounded-r-2xl flex flex-col justify-center shrink-0 mb-4 relative group overflow-hidden shadow-xl">
-              <div className="absolute top-0 right-0 p-4 opacity-[0.03] -rotate-12 translate-x-4 pointer-events-none"><Brain className="w-32 h-32 text-white" /></div>
-              {renderFormattedText(currentQuestion.questionText)}
-              {currentQuestion.diagramUrl && <div className="mt-3 flex items-center gap-2 px-3 py-1.5 glass rounded-lg text-indigo-400 font-mono text-[10px] w-fit border-white/10"><ImageIcon className="w-3.5 h-3.5" /> <span>{currentQuestion.diagramUrl}</span></div>}
+           <div className="p-6 sm:p-8 border-l-8 border-rose-600 bg-white/[0.02] rounded-r-[2rem] flex flex-col justify-center shrink-0 mb-6 relative group overflow-hidden shadow-2xl border border-white/5">
+              <div className="absolute top-0 right-0 p-6 opacity-[0.02] -rotate-12 translate-x-8 pointer-events-none transition-transform group-hover:scale-110 duration-1000">
+                <Brain className="w-48 h-48 text-white" />
+              </div>
+              <div className="relative z-10">
+                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-rose-500 mb-4 flex items-center gap-2">
+                  <Zap className="w-3 h-3 fill-current" /> Incoming Signal
+                </p>
+                {renderFormattedText(currentQuestion.questionText)}
+              </div>
+              {currentQuestion.diagramUrl && (
+                <div className="mt-4 flex items-center gap-3 px-4 py-2 glass rounded-xl text-indigo-400 font-mono text-[11px] w-fit border-white/10 shadow-lg">
+                  <ImageIcon className="w-4 h-4" /> 
+                  <span className="tracking-widest uppercase">{currentQuestion.diagramUrl}</span>
+                </div>
+              )}
            </div>
 
-           <div className="flex-1 overflow-y-auto scroll-slim pr-2">
+            <div className="flex-1 overflow-y-auto scroll-slim pr-2">
               {currentQuestion.type === 'match_the_column' ? (
                 renderMatching()
               ) : currentQuestion.type === 'numeric' ? (
-                <div className="max-w-lg mx-auto py-12">
-                   <input 
-                     type="text" disabled={isAnswerChecked} autoFocus placeholder="INPUT TARGET SIGNAL..." 
-                     className="w-full bg-white/5 border-2 p-8 rounded-3xl text-white text-3xl font-black text-center focus:outline-none transition-all shadow-xl border-white/10 focus:border-rose-500"
-                     value={userAnswers[currentQuestion.id] || ''}
-                     onChange={(e) => handleSelectAnswer(e.target.value)}
-                   />
+                <div className="max-w-xl mx-auto py-16">
+                   <div className="relative group">
+                     <div className="absolute -inset-1 bg-gradient-to-r from-rose-500 to-indigo-500 rounded-[2.5rem] blur opacity-20 group-hover:opacity-40 transition duration-1000 group-focus-within:opacity-100"></div>
+                     <input 
+                       type="text" disabled={isAnswerChecked} autoFocus placeholder="INPUT TARGET SIGNAL..." 
+                       className="relative w-full bg-slate-950 border-2 p-10 rounded-[2rem] text-white text-4xl font-black text-center focus:outline-none transition-all shadow-2xl border-white/10 focus:border-rose-500/50 placeholder:text-white/5"
+                       value={userAnswers[currentQuestion.id] || ''}
+                       onChange={(e) => handleSelectAnswer(e.target.value)}
+                     />
+                   </div>
+                   <p className="text-center mt-6 text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Awaiting numerical confirmation</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   {currentQuestion.options?.map((opt, i) => {
                     const isSelected = userAnswers[currentQuestion.id] === opt;
                     return (
-                      <button key={i} disabled={isAnswerChecked} onClick={() => handleSelectAnswer(opt)}
-                        className={`w-full p-4 sm:p-5 text-left rounded-2xl border-2 transition-all flex items-center gap-4 group relative overflow-hidden
-                          ${isSelected ? 'border-rose-500 bg-rose-500/10 text-white' : 'border-white/5 bg-white/[0.02] text-white/70 hover:bg-white/[0.08] hover:border-white/10'}`}>
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs border transition-all shrink-0
-                          ${isSelected ? 'bg-rose-500 text-white border-transparent' : 'bg-white/5 text-white/20 border-white/10'}`}>{String.fromCharCode(65 + i)}</div>
-                        <span className="font-bold text-base sm:text-lg leading-snug">{opt}</span>
+                      <button 
+                        key={i} 
+                        disabled={isAnswerChecked} 
+                        onClick={() => handleSelectAnswer(opt)}
+                        className={`w-full p-5 sm:p-6 text-left rounded-[1.5rem] border-2 transition-all flex items-center gap-5 group relative overflow-hidden
+                          ${isSelected 
+                            ? 'border-rose-500 bg-rose-500/10 text-white shadow-[0_0_30px_rgba(244,63,94,0.15)]' 
+                            : 'border-white/5 bg-white/[0.03] text-white/70 hover:bg-white/[0.08] hover:border-white/20 hover:scale-[1.01]'}`}
+                      >
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-sm border transition-all shrink-0
+                          ${isSelected ? 'bg-rose-500 text-white border-transparent' : 'bg-white/5 text-white/20 border-white/10 group-hover:text-white/40'}`}>
+                          {String.fromCharCode(65 + i)}
+                        </div>
+                        <span className="font-bold text-lg sm:text-xl leading-snug">{opt}</span>
+                        {isSelected && (
+                          <div className="absolute right-6 top-1/2 -translate-y-1/2">
+                            <div className="w-2 h-2 bg-rose-500 rounded-full animate-ping"></div>
+                          </div>
+                        )}
                       </button>
                     );
                   })}
@@ -647,33 +754,56 @@ const QuizEngine: React.FC<QuizEngineProps> = ({ state, updateState, onDiscuss }
       </div>
 
       {isAnswerChecked && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-10 animate-in fade-in duration-300">
-           <div className="absolute inset-0 bg-[#08080c]/90 backdrop-blur-2xl"></div>
-           <div className="relative w-full max-w-2xl glass p-10 rounded-[4rem] border-2 border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.9)] flex flex-col items-center text-center animate-in zoom-in-95 duration-300">
-              <div className={`w-24 h-24 rounded-[2.5rem] flex items-center justify-center mb-8 shadow-2xl transition-all
-                ${isCurrentCorrect ? 'bg-emerald-500/20 text-emerald-500 animate-bounce' : 'bg-rose-500/20 text-rose-500 animate-pulse'}`}>
-                 {isCurrentCorrect ? <CheckCircle2 className="w-14 h-14" /> : <XCircle className="w-14 h-14" />}
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-10 animate-in fade-in duration-500">
+           <div className="absolute inset-0 bg-[#08080c]/95 backdrop-blur-3xl">
+              <div className={`absolute inset-0 bg-gradient-to-b ${isCurrentCorrect ? 'from-emerald-500/5' : 'from-rose-500/5'} to-transparent`}></div>
+           </div>
+           <motion.div 
+             initial={{ opacity: 0, scale: 0.9, y: 40 }}
+             animate={{ opacity: 1, scale: 1, y: 0 }}
+             className="relative w-full max-w-3xl glass p-8 sm:p-12 rounded-[4rem] border-2 border-white/10 shadow-[0_0_150px_rgba(0,0,0,1)] flex flex-col items-center text-center overflow-hidden"
+           >
+              <div className={`absolute top-0 left-0 w-full h-2 ${isCurrentCorrect ? 'bg-emerald-500' : 'bg-rose-500'} shadow-[0_0_20px_rgba(0,0,0,0.5)]`}></div>
+              
+              <div className={`w-28 h-28 rounded-[3rem] flex items-center justify-center mb-10 shadow-2xl transition-all relative
+                ${isCurrentCorrect ? 'bg-emerald-500/20 text-emerald-500' : 'bg-rose-500/20 text-rose-500'}`}>
+                 <div className={`absolute inset-0 rounded-[3rem] animate-ping opacity-20 ${isCurrentCorrect ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
+                 {isCurrentCorrect ? <CheckCircle2 className="w-16 h-16 relative z-10" /> : <XCircle className="w-16 h-16 relative z-10" />}
               </div>
               
-              <h2 className={`text-5xl font-black uppercase tracking-tighter mb-2 ${isCurrentCorrect ? 'text-emerald-400' : 'text-rose-400'}`}>
+              <h2 className={`text-6xl font-black uppercase tracking-tighter mb-4 ${isCurrentCorrect ? 'text-emerald-400' : 'text-rose-400'}`}>
                 {isCurrentCorrect ? 'Synaptic Match' : 'Logic Dissonance'}
               </h2>
-              <div className="flex items-center gap-4 mb-10 opacity-40 text-[10px] font-black uppercase tracking-[0.6em]">
-                 <Clock className="w-4 h-4" /> <span>Processed in {(currentLatency / 1000).toFixed(1)}s</span>
-                 <div className="w-1 h-1 rounded-full bg-white/20"></div>
-                 <ShieldCheck className="w-4 h-4" /> <span>Target Node Validated</span>
+              <div className="flex items-center gap-6 mb-12 opacity-40 text-[11px] font-black uppercase tracking-[0.5em]">
+                 <div className="flex items-center gap-2"><Clock className="w-4 h-4" /> <span>{(currentLatency / 1000).toFixed(1)}s</span></div>
+                 <div className="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+                 <div className="flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> <span>Node Validated</span></div>
               </div>
 
-              <div className="w-full p-8 rounded-[2.5rem] bg-white/[0.03] border border-white/5 mb-10 text-left relative overflow-hidden">
-                 <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500/50"></div>
-                 <div className="flex items-center gap-3 mb-4 opacity-40 text-[9px] font-black uppercase tracking-[0.4em]">
-                    <Bot className="w-4 h-4" /> Neural Logic Breakdown
+              <div className="w-full p-10 rounded-[3rem] bg-white/[0.03] border border-white/5 mb-12 text-left relative overflow-hidden group">
+                 <div className={`absolute top-0 left-0 w-2 h-full ${isCurrentCorrect ? 'bg-emerald-500/50' : 'bg-rose-500/50'}`}></div>
+                 <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3 opacity-40 text-[10px] font-black uppercase tracking-[0.4em]">
+                       <Bot className="w-5 h-5" /> Neural Logic Breakdown
+                    </div>
+                    {!isGeneratingExplanation && (
+                      <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[8px] font-black text-white/30 uppercase tracking-widest">
+                        Analysis Complete
+                      </div>
+                    )}
                  </div>
-                 <div className="text-xl text-slate-200 font-medium leading-relaxed italic max-h-[200px] overflow-y-auto scroll-slim">
+                 <div className="text-2xl text-slate-200 font-medium leading-relaxed italic max-h-[250px] overflow-y-auto scroll-slim pr-4">
                     {isGeneratingExplanation ? (
-                      <div className="flex items-center gap-3 opacity-50">
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        <span className="text-sm font-black uppercase tracking-widest">Synthesizing Neural Logic...</span>
+                      <div className="flex flex-col gap-4">
+                        <div className="flex items-center gap-4">
+                          <Loader2 className="w-6 h-6 animate-spin text-rose-500" />
+                          <span className="text-sm font-black uppercase tracking-[0.3em] text-white/40 animate-pulse">Synthesizing Cognitive Matrix...</span>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="h-4 bg-white/5 rounded-full w-full animate-pulse"></div>
+                          <div className="h-4 bg-white/5 rounded-full w-[90%] animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                          <div className="h-4 bg-white/5 rounded-full w-[95%] animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                        </div>
                       </div>
                     ) : (
                       dynamicExplanation || currentQuestion.explanation
@@ -684,11 +814,12 @@ const QuizEngine: React.FC<QuizEngineProps> = ({ state, updateState, onDiscuss }
               <button 
                 onClick={handleNext}
                 autoFocus
-                className="w-full py-6 bg-white text-slate-950 rounded-2xl font-black uppercase text-sm tracking-[0.5em] shadow-[0_0_40px_rgba(255,255,255,0.2)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-4"
+                className="group relative w-full py-7 bg-white text-slate-950 rounded-[2rem] font-black uppercase text-base tracking-[0.6em] shadow-[0_0_50px_rgba(255,255,255,0.2)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-6 overflow-hidden"
               >
-                Continue <span className="px-3 py-1 bg-slate-200 rounded-lg text-[10px] tracking-widest">SPACE</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                Continue <span className="px-4 py-1.5 bg-slate-200 rounded-xl text-[11px] tracking-widest shadow-inner">SPACE</span>
               </button>
-           </div>
+           </motion.div>
         </div>
       )}
 

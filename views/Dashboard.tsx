@@ -20,7 +20,9 @@ import {
   Ban,
   Info,
   ExternalLink,
-  Key
+  Key,
+  Flame,
+  Medal
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppState, Quiz, Summary } from '../types';
@@ -365,6 +367,15 @@ const Dashboard: React.FC<DashboardProps> = ({ state, updateState }) => {
             <div className="relative">
               <div className={`absolute -inset-1 bg-gradient-to-tr from-${theme.accentColor} to-purple-500 rounded-full blur opacity-20`}></div>
               <img src={state.user.avatar} className="relative w-20 h-20 rounded-full border-2 border-white/10 object-cover shadow-2xl" alt="Profile" />
+              {currentStreak >= 7 && (
+                <motion.div 
+                  animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="absolute -top-2 -right-2 w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(249,115,22,0.6)] z-10"
+                >
+                  <Flame className="w-6 h-6 text-white fill-current" />
+                </motion.div>
+              )}
             </div>
             <div>
               <h1 className="font-brand text-3xl font-black text-white tracking-tight">Status: <span className={`text-${theme.accentColor}`}>{state.user.name}</span></h1>
@@ -436,6 +447,48 @@ const Dashboard: React.FC<DashboardProps> = ({ state, updateState }) => {
             onClick={startMistakeRecovery}
             disabled={totalMistakes === 0}
           />
+        </section>
+
+        {/* Badge Gallery */}
+        <section className="pt-8">
+           <div className="flex items-center justify-between mb-6 px-2">
+              <div className="flex items-center gap-4">
+                 <div className="p-3 bg-amber-500/10 rounded-2xl">
+                    <Medal className="w-6 h-6 text-amber-400" />
+                 </div>
+                 <div>
+                    <h3 className="text-2xl font-black text-white uppercase tracking-tighter leading-none">Achievement Vault</h3>
+                    <p className="text-[10px] font-black uppercase text-white/30 tracking-widest mt-1">Synaptic Milestones Unlocked</p>
+                 </div>
+              </div>
+              <div className="glass px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/40">
+                 {state.user.badges?.length || 0} / 12 Badges
+              </div>
+           </div>
+           
+           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {state.user.badges && state.user.badges.length > 0 ? (
+                state.user.badges.map((badge) => (
+                  <motion.div 
+                    key={badge.id}
+                    whileHover={{ scale: 1.05, y: -5 }}
+                    className="glass p-6 rounded-3xl border border-white/5 flex flex-col items-center text-center group relative overflow-hidden"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="w-12 h-12 rounded-2xl bg-amber-500/20 flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
+                       {badge.icon === 'Zap' ? <Zap className="w-6 h-6 text-amber-400" /> : <Target className="w-6 h-6 text-amber-400" />}
+                    </div>
+                    <h4 className="text-[11px] font-black text-white uppercase tracking-tighter mb-1">{badge.name}</h4>
+                    <p className="text-[8px] font-bold text-white/30 uppercase tracking-widest leading-tight">{badge.description}</p>
+                  </motion.div>
+                ))
+              ) : (
+                <div className="col-span-full glass p-12 rounded-[2.5rem] border border-dashed border-white/10 flex flex-col items-center text-center">
+                   <Trophy className="w-12 h-12 text-white/5 mb-4" />
+                   <p className="text-sm font-bold text-white/20 uppercase tracking-[0.3em]">No synaptic milestones detected yet</p>
+                </div>
+              )}
+           </div>
         </section>
       </motion.div>
 

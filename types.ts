@@ -2,7 +2,9 @@
 export enum ThemeId {
   DeepSpace = 'DeepSpace',
   CrimsonFlash = 'CrimsonFlash',
-  EmeraldLight = 'EmeraldLight'
+  EmeraldLight = 'EmeraldLight',
+  NebulaGold = 'NebulaGold',
+  CyberGrid = 'CyberGrid'
 }
 
 export interface ThemeConfig {
@@ -13,6 +15,15 @@ export interface ThemeConfig {
   cardBg: string;
   textColor: string;
   borderColor: string;
+  unlockLevel?: number;
+}
+
+export interface Badge {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  unlockedAt: number;
 }
 
 export interface UserProfile {
@@ -25,6 +36,8 @@ export interface UserProfile {
   lastVisit: string;
   xp: number;
   level: number;
+  badges: Badge[];
+  unlockedThemes: ThemeId[];
 }
 
 export interface Question {

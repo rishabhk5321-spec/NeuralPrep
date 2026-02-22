@@ -28,6 +28,7 @@ import SummaryView from './views/SummaryView';
 import PerformanceAnalysis from './views/PerformanceAnalysis';
 import ChatBuddy from './components/ChatBuddy';
 import DebugPanel from './components/DebugPanel';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   loadProfileFromLocalStorage, 
   loadVaultFromIndexedDB, 
@@ -86,6 +87,35 @@ const DynamicBackground: React.FC<{ themeId: ThemeId }> = ({ themeId }) => {
               }}
             />
           ))}
+        </div>
+      )}
+
+      {/* Nebula Gold: Stellar Nursery */}
+      {themeId === ThemeId.NebulaGold && (
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(245,158,11,0.05)_0%,transparent_70%)]" />
+          {[...Array(15)].map((_, i) => (
+            <div 
+              key={i} 
+              className="gold-pulse" 
+              style={{
+                width: `${Math.random() * 150 + 50}px`,
+                height: `${Math.random() * 150 + 50}px`,
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDuration: `${Math.random() * 8 + 4}s`,
+                animationDelay: `${Math.random() * 5}s`
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Cyber Grid: Digital Matrix */}
+      {themeId === ThemeId.CyberGrid && (
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute inset-0 cyber-grid" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/5 to-transparent animate-scan" />
         </div>
       )}
     </div>
@@ -156,10 +186,13 @@ const AppContent: React.FC<{
     });
   }, [user, authLoading, bypassAuth, isConfigured, location]);
 
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
   const handleSignOut = async () => {
     sessionStorage.removeItem('neural_bypass');
     setBypassAuth(false);
     await signOut();
+    setShowLogoutConfirm(false);
   };
 
   if (authLoading) {
@@ -184,7 +217,8 @@ const AppContent: React.FC<{
       <DynamicBackground themeId={state.theme} />
 
       {!isQuizMode && (
-        <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10 px-6 py-4 flex items-center justify-between">
+        <>
+          <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <Link to="/" className="flex items-center gap-3 group">
               <div className={`relative p-2.5 rounded-xl bg-gradient-to-br from-${theme.accentColor} to-indigo-600 group-hover:scale-110 group-hover:rotate-6 transition-all shadow-lg shadow-${theme.accentColor}/20`}>
@@ -219,7 +253,7 @@ const AppContent: React.FC<{
               </Link>
               <div className="absolute top-full right-0 mt-2 w-48 glass rounded-2xl border border-white/10 p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                 <button 
-                  onClick={handleSignOut}
+                  onClick={() => setShowLogoutConfirm(true)}
                   className="w-full flex items-center gap-3 px-4 py-3 hover:bg-rose-500/10 text-rose-400 rounded-xl transition-colors font-bold text-xs uppercase tracking-widest"
                 >
                   <CloudOff className="w-4 h-4" /> Terminate Link
@@ -228,6 +262,50 @@ const AppContent: React.FC<{
             </div>
           </div>
         </nav>
+
+        {/* Logout Confirmation Modal */}
+        <AnimatePresence>
+          {showLogoutConfirm && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowLogoutConfirm(false)}
+                className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+              />
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="relative glass p-8 rounded-[2.5rem] border border-white/10 max-w-sm w-full text-center"
+              >
+                <div className="w-16 h-16 bg-rose-500/10 rounded-2xl flex items-center justify-center mb-6 mx-auto">
+                  <CloudOff className="w-8 h-8 text-rose-500" />
+                </div>
+                <h3 className="text-xl font-black text-white uppercase tracking-tighter mb-2">Terminate Link?</h3>
+                <p className="text-white/40 text-xs mb-8 leading-relaxed">
+                  Your synaptic connection will be severed. You will need to re-authenticate to access your cloud vault.
+                </p>
+                <div className="flex flex-col gap-3">
+                  <button 
+                    onClick={handleSignOut}
+                    className="w-full py-4 bg-rose-600 text-white rounded-xl font-black uppercase text-[10px] tracking-[0.3em] hover:bg-rose-500 transition-colors"
+                  >
+                    Confirm Termination
+                  </button>
+                  <button 
+                    onClick={() => setShowLogoutConfirm(false)}
+                    className="w-full py-4 bg-white/5 text-white/60 rounded-xl font-black uppercase text-[10px] tracking-[0.3em] hover:bg-white/10 transition-colors"
+                  >
+                    Stay Connected
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+        </>
       )}
 
       <main className={`${isQuizMode ? 'pt-0' : 'pt-28'} pb-12 px-4 sm:px-6 max-w-7xl mx-auto min-h-screen`}>
@@ -303,30 +381,46 @@ const AppWithAuth: React.FC<{
 }> = ({ state, setState, isInitializing, setIsInitializing, isChatOpen, setIsChatOpen, initialChatMessage, setInitialChatMessage }) => {
   const { user, userData, saveUserData } = useAuth();
 
-  const [prevUser, setPrevUser] = useState<string | null>(null);
+  const prevUserRef = React.useRef<string | null>(null);
 
   useEffect(() => {
+    const currentUid = user?.uid || null;
     // Reset state when user changes from logged out to logged in
     // to ensure we don't show stale local data while waiting for cloud data.
-    if (user && !prevUser) {
+    if (currentUid && !prevUserRef.current) {
       setState(null);
       setIsInitializing(true);
     }
-    setPrevUser(user?.uid || null);
-  }, [user, prevUser]);
+    prevUserRef.current = currentUid;
+  }, [user, setState, setIsInitializing]);
+
+  const isInitializedRef = React.useRef(false);
+  const lastUserRef = React.useRef<string | null>(null);
 
   useEffect(() => {
     async function init() {
-      console.log("Neural Initialization: Starting...", { user: user?.uid, hasUserData: !!userData });
+      const currentUid = user?.uid || null;
+      
+      // If user changed, reset initialization flag
+      if (currentUid !== lastUserRef.current) {
+        isInitializedRef.current = false;
+        lastUserRef.current = currentUid;
+      }
+
+      // If already initialized for this user, don't do it again
+      if (isInitializedRef.current && state) return;
+
+      console.log("Neural Initialization: Starting...", { user: currentUid, hasUserData: !!userData });
+      
       try {
         if (user) {
           if (userData) {
             console.log("Neural Initialization: Using Cloud Data");
             setState(userData);
+            isInitializedRef.current = true;
+            setIsInitializing(false);
           } else {
             console.log("Neural Initialization: Waiting for Cloud Data...");
-            // Optionally keep the local state if it's already there, 
-            // but we want to ensure we don't show stale data if possible.
           }
         } else {
           console.log("Neural Initialization: Using Local Data (Not Logged In)");
@@ -348,25 +442,30 @@ const AppWithAuth: React.FC<{
             ...profile,
             ...vault
           });
+          isInitializedRef.current = true;
+          setIsInitializing(false);
         }
       } catch (e) {
         console.error("Neural Initialization Critical Failure", e);
-      } finally {
-        console.log("Neural Initialization: Complete");
         setIsInitializing(false);
       }
     }
     init();
-  }, [user, userData]);
+  }, [user, userData, state, setIsInitializing, setState]);
 
   useEffect(() => {
     if (!state) return;
+    
+    // Local persistence is fast and safe
     saveProfileToLocalStorage(state);
     saveVaultToIndexedDB(state);
     
-    // Sync to cloud if logged in
+    // Sync to cloud if logged in - with a small delay to prevent rapid-fire loops
     if (user) {
-      saveUserData(state);
+      const timeoutId = setTimeout(() => {
+        saveUserData(state);
+      }, 1000);
+      return () => clearTimeout(timeoutId);
     }
   }, [state, user, saveUserData]);
 

@@ -11,7 +11,8 @@ import {
   ShieldCheck,
   Star,
   Check,
-  FileUp
+  FileUp,
+  Lock
 } from 'lucide-react';
 import { AppState, ThemeId } from '../types';
 import { THEMES } from '../constants';
@@ -134,27 +135,43 @@ const SettingsPage: React.FC<SettingsProps> = ({ state, updateState }) => {
            <Palette className="w-5 h-5 text-emerald-400" /> Neural Themes
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-           {(Object.values(THEMES)).map((t) => (
-             <button
-               key={t.id}
-               onClick={() => updateState({ theme: t.id })}
-               className={`relative p-6 rounded-[2rem] border-2 transition-all group overflow-hidden shadow-xl ${
-                 state.theme === t.id ? `border-${t.accentColor} bg-${t.accentColor}/15` : 'border-white/5 bg-white/5 hover:bg-white/10'
-               }`}
-             >
-               <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl bg-${t.accentColor}/20 flex items-center justify-center shrink-0 shadow-inner`}>
-                     <Star className={`w-6 h-6 text-${t.accentColor}`} />
-                  </div>
-                  <span className="font-black text-lg text-white tracking-tight">{t.name}</span>
-               </div>
-               {state.theme === t.id && (
-                 <div className={`absolute top-5 right-5 bg-${t.accentColor} rounded-full p-1.5 shadow-2xl animate-in zoom-in`}>
-                    <Check className="w-4 h-4 text-white" />
+           {(Object.values(THEMES)).map((t) => {
+             const isLocked = t.unlockLevel && state.user.level < t.unlockLevel;
+             const isUnlocked = state.user.unlockedThemes?.includes(t.id);
+             const effectivelyLocked = isLocked && !isUnlocked;
+
+             return (
+               <button
+                 key={t.id}
+                 disabled={effectivelyLocked}
+                 onClick={() => updateState({ theme: t.id })}
+                 className={`relative p-6 rounded-[2rem] border-2 transition-all group overflow-hidden shadow-xl ${
+                   state.theme === t.id 
+                     ? `border-${t.accentColor} bg-${t.accentColor}/15` 
+                     : effectivelyLocked 
+                       ? 'border-white/5 bg-white/5 opacity-50 cursor-not-allowed' 
+                       : 'border-white/5 bg-white/5 hover:bg-white/10'
+                 }`}
+               >
+                 <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-xl bg-${t.accentColor}/20 flex items-center justify-center shrink-0 shadow-inner`}>
+                       {effectivelyLocked ? <Lock className="w-6 h-6 text-white/40" /> : <Star className={`w-6 h-6 text-${t.accentColor}`} />}
+                    </div>
+                    <div className="text-left">
+                       <span className="font-black text-lg text-white tracking-tight block">{t.name}</span>
+                       {effectivelyLocked && (
+                         <span className="text-[9px] font-black uppercase text-rose-400 tracking-widest">Unlock at Level {t.unlockLevel}</span>
+                       )}
+                    </div>
                  </div>
-               )}
-             </button>
-           ))}
+                 {state.theme === t.id && (
+                   <div className={`absolute top-5 right-5 bg-${t.accentColor} rounded-full p-1.5 shadow-2xl animate-in zoom-in`}>
+                      <Check className="w-4 h-4 text-white" />
+                   </div>
+                 )}
+               </button>
+             );
+           })}
         </div>
       </section>
 
