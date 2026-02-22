@@ -213,42 +213,46 @@ const AppContent: React.FC<{
   }
 
   return (
-    <div className={`min-h-screen transition-all duration-500 bg-gradient-to-br ${theme.bgGradient} ${theme.textColor} animate-gradient relative overflow-x-hidden`}>
+    <div className={`min-h-screen transition-all duration-500 bg-gradient-to-br ${theme.bgGradient} ${theme.textColor} animate-gradient relative overflow-x-hidden pb-20 sm:pb-0`}>
       <DynamicBackground themeId={state.theme} />
 
       {!isQuizMode && (
         <>
-          <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10 px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link to="/" className="flex items-center gap-3 group">
-              <div className={`relative p-2.5 rounded-xl bg-gradient-to-br from-${theme.accentColor} to-indigo-600 group-hover:scale-110 group-hover:rotate-6 transition-all shadow-lg shadow-${theme.accentColor}/20`}>
-                <Brain className="w-6 h-6 text-white" />
-                <Zap className="absolute -top-1 -right-1 w-3.5 h-3.5 text-white fill-white animate-pulse" />
+          <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3 sm:gap-6">
+            <Link to="/" className="flex items-center gap-2 sm:gap-3 group">
+              <div className={`relative p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-${theme.accentColor} to-indigo-600 group-hover:scale-110 group-hover:rotate-6 transition-all shadow-lg shadow-${theme.accentColor}/20`}>
+                <Brain className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                <Zap className="absolute -top-1 -right-1 w-3 sm:w-3.5 h-3 sm:h-3.5 text-white fill-white animate-pulse" />
               </div>
-              <span className="font-brand font-black text-2xl tracking-tighter hidden sm:block">
+              <span className="font-brand font-black text-xl sm:text-2xl tracking-tighter hidden xs:block">
                 Neural<span className={`text-${theme.accentColor}`}>Prep</span>
               </span>
             </Link>
-            <ConnectivityIndicator />
+            <div className="hidden sm:block">
+              <ConnectivityIndicator />
+            </div>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-6">
-            <NavLinks theme={theme} />
+            <div className="hidden sm:block">
+              <NavLinks theme={theme} />
+            </div>
             <div className="h-8 w-[1px] bg-white/10 hidden sm:block"></div>
             <button 
               onClick={() => setIsChatOpen(true)}
-              className="p-2.5 hover:bg-white/10 rounded-full transition-colors relative group"
+              className="p-2 sm:p-2.5 hover:bg-white/10 rounded-full transition-colors relative group"
               title="Summon Assistant"
             >
-              <Bot className={`w-6 h-6 group-hover:text-${theme.accentColor} transition-colors`} />
+              <Bot className={`w-5 h-5 sm:w-6 sm:h-6 group-hover:text-${theme.accentColor} transition-colors`} />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
             </button>
             <div className="group relative">
-              <Link to="/settings" className="flex items-center gap-3 glass px-4 py-2 rounded-full hover:bg-white/10 transition-colors">
-                <img src={state.user.avatar} className="w-7 h-7 rounded-full border border-white/20" alt="Profile" />
+              <Link to="/settings" className="flex items-center gap-2 sm:gap-3 glass px-3 sm:px-4 py-1.5 sm:py-2 rounded-full hover:bg-white/10 transition-colors">
+                <img src={state.user.avatar} className="w-6 h-6 sm:w-7 sm:h-7 rounded-full border border-white/20" alt="Profile" />
                 <div className="hidden md:block text-left">
-                   <p className="text-[11px] font-bold uppercase tracking-widest opacity-40 leading-none">Level {state.user.level}</p>
-                   <span className="text-sm font-bold truncate max-w-[80px] block">{user?.displayName || state.user.name}</span>
+                   <p className="text-[10px] font-bold uppercase tracking-widest opacity-40 leading-none">Level {state.user.level}</p>
+                   <span className="text-xs sm:text-sm font-bold truncate max-w-[80px] block">{user?.displayName || state.user.name}</span>
                 </div>
               </Link>
               <div className="absolute top-full right-0 mt-2 w-48 glass rounded-2xl border border-white/10 p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
@@ -262,6 +266,11 @@ const AppContent: React.FC<{
             </div>
           </div>
         </nav>
+
+        {/* Bottom Navigation for Mobile */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 sm:hidden glass border-t border-white/10 px-6 py-3 flex items-center justify-around pb-safe">
+          <NavLinks theme={theme} isMobile />
+        </div>
 
         {/* Logout Confirmation Modal */}
         <AnimatePresence>
@@ -508,7 +517,7 @@ const AppWithAuth: React.FC<{
   );
 };
 
-const NavLinks: React.FC<{ theme: any }> = ({ theme }) => {
+const NavLinks: React.FC<{ theme: any, isMobile?: boolean }> = ({ theme, isMobile }) => {
   const location = useLocation();
   const links = [
     { to: '/', icon: Home, label: 'Home' },
@@ -517,19 +526,25 @@ const NavLinks: React.FC<{ theme: any }> = ({ theme }) => {
   ];
 
   return (
-    <div className="flex items-center gap-2 sm:gap-4">
+    <div className={`flex items-center ${isMobile ? 'w-full justify-around' : 'gap-2 sm:gap-4'}`}>
       {links.map((link) => (
         <Link
           key={link.to}
           to={link.to}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
-            location.pathname === link.to 
-              ? `bg-${theme.accentColor}/20 text-${theme.accentColor}` 
-              : 'hover:bg-white/5 opacity-70 hover:opacity-100'
+          className={`flex items-center gap-2 transition-all ${
+            isMobile 
+              ? `flex-col gap-1 p-2 ${location.pathname === link.to ? `text-${theme.accentColor}` : 'text-white/40'}`
+              : `px-4 py-2 rounded-xl ${
+                  location.pathname === link.to 
+                    ? `bg-${theme.accentColor}/20 text-${theme.accentColor}` 
+                    : 'hover:bg-white/5 opacity-70 hover:opacity-100'
+                }`
           }`}
         >
-          <link.icon className="w-5 h-5" />
-          <span className="text-sm font-semibold hidden lg:block">{link.label}</span>
+          <link.icon className={`${isMobile ? 'w-6 h-6' : 'w-5 h-5'}`} />
+          <span className={`${isMobile ? 'text-[10px] font-black uppercase tracking-widest' : 'text-sm font-semibold hidden lg:block'}`}>
+            {link.label}
+          </span>
         </Link>
       ))}
     </div>

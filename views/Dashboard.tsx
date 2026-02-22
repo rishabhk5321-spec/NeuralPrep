@@ -22,7 +22,8 @@ import {
   ExternalLink,
   Key,
   Flame,
-  Medal
+  Medal,
+  Grid
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppState, Quiz, Summary } from '../types';
@@ -33,6 +34,8 @@ import { generateAdaptiveSession, createRevisionFlashcards } from '../aiBrain/sm
 import { generateSummaryFromText } from '../services/geminiService';
 import { getPracticeMistakes, getBrainRecommendation } from '../services/memoryService';
 import { useNavigate } from 'react-router-dom';
+import CognitiveHeatmap from '../components/CognitiveHeatmap';
+import WelcomeModal from '../components/WelcomeModal';
 
 // aistudio is assumed to be globally available as per instructions.
 // Removed local declaration to resolve "identical modifiers" and type mismatch errors.
@@ -49,9 +52,22 @@ const Dashboard: React.FC<DashboardProps> = ({ state, updateState }) => {
   const [errorModal, setErrorModal] = useState<{title: string, msg: string, technical?: string, isQuota?: boolean} | null>(null);
   const [showPasteModal, setShowPasteModal] = useState(false);
   const [pastedText, setPastedText] = useState('');
+  const [showWelcome, setShowWelcome] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const theme = THEMES[state.theme];
+
+  useEffect(() => {
+    const hasSeenWelcome = localStorage.getItem('neuralprep_welcome_seen');
+    if (!hasSeenWelcome) {
+      setShowWelcome(true);
+    }
+  }, []);
+
+  const handleCloseWelcome = () => {
+    setShowWelcome(false);
+    localStorage.setItem('neuralprep_welcome_seen', 'true');
+  };
 
   const prescription = useMemo(() => getBrainRecommendation(state), [state]);
 
@@ -230,6 +246,13 @@ const Dashboard: React.FC<DashboardProps> = ({ state, updateState }) => {
   return (
     <div className="relative pb-16 max-w-5xl mx-auto space-y-8 overflow-hidden">
       
+      <WelcomeModal 
+        isOpen={showWelcome} 
+        onClose={handleCloseWelcome} 
+        theme={theme} 
+        userName={state.user.name} 
+      />
+
       {/* Paste Modal Overlay */}
       {showPasteModal && (
         <div className="fixed inset-0 z-[300] bg-slate-950/90 backdrop-blur-2xl flex items-center justify-center p-4 sm:p-8 animate-in fade-in duration-300">
@@ -363,39 +386,39 @@ const Dashboard: React.FC<DashboardProps> = ({ state, updateState }) => {
         className="space-y-8"
       >
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2">
-          <div className="flex items-center gap-6">
-            <div className="relative">
+          <div className="flex items-center gap-4 sm:gap-6">
+            <div className="relative shrink-0">
               <div className={`absolute -inset-1 bg-gradient-to-tr from-${theme.accentColor} to-purple-500 rounded-full blur opacity-20`}></div>
-              <img src={state.user.avatar} className="relative w-20 h-20 rounded-full border-2 border-white/10 object-cover shadow-2xl" alt="Profile" />
+              <img src={state.user.avatar} className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-white/10 object-cover shadow-2xl" alt="Profile" />
               {currentStreak >= 7 && (
                 <motion.div 
                   animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
                   transition={{ duration: 2, repeat: Infinity }}
-                  className="absolute -top-2 -right-2 w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(249,115,22,0.6)] z-10"
+                  className="absolute -top-1 -right-1 w-8 h-8 sm:w-10 sm:h-10 bg-orange-500 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(249,115,22,0.6)] z-10"
                 >
-                  <Flame className="w-6 h-6 text-white fill-current" />
+                  <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-white fill-current" />
                 </motion.div>
               )}
             </div>
             <div>
-              <h1 className="font-brand text-3xl font-black text-white tracking-tight">Status: <span className={`text-${theme.accentColor}`}>{state.user.name}</span></h1>
+              <h1 className="font-brand text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">Status: <span className={`text-${theme.accentColor}`}>{state.user.name}</span></h1>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-xs font-bold text-white/40 uppercase tracking-widest">Level {state.user.level}</span>
+                <span className="text-[10px] sm:text-xs font-bold text-white/40 uppercase tracking-widest">Level {state.user.level}</span>
                 <div className="w-1 h-1 rounded-full bg-white/20"></div>
-                <span className={`text-xs font-bold ${prescription.type === 'STABLE' ? 'text-emerald-400' : 'text-indigo-400'} uppercase tracking-widest`}>
-                  Neural Engine: {prescription.type === 'STABLE' ? 'Stable' : 'Adaptive'}
+                <span className={`text-[10px] sm:text-xs font-bold ${prescription.type === 'STABLE' ? 'text-emerald-400' : 'text-indigo-400'} uppercase tracking-widest`}>
+                  Engine: {prescription.type === 'STABLE' ? 'Stable' : 'Adaptive'}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="glass px-6 py-3 rounded-2xl flex items-center gap-4 border border-white/5 shadow-xl">
+          <div className="glass px-4 sm:px-6 py-2 sm:py-3 rounded-2xl flex items-center justify-between md:justify-end gap-4 border border-white/5 shadow-xl">
             <div className="text-right">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Atomic Clock</p>
-              <p className="text-xl font-black text-white tabular-nums">{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+              <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Atomic Clock</p>
+              <p className="text-lg sm:text-xl font-black text-white tabular-nums">{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
             </div>
             <div className="h-8 w-px bg-white/10"></div>
-            <Clock className={`w-5 h-5 text-${theme.accentColor}`} />
+            <Clock className={`w-4 h-4 sm:w-5 sm:h-5 text-${theme.accentColor}`} />
           </div>
         </header>
 
@@ -406,14 +429,14 @@ const Dashboard: React.FC<DashboardProps> = ({ state, updateState }) => {
           <SmallStat icon={Activity} label="Cognitive" value={prescription.priority === 3 ? 'Critical' : 'Nominal'} color="indigo" />
         </section>
 
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 pt-4">
           <PrimaryAction 
             icon={Brain} 
             title="Concept Sync (PDF)" 
             description="Transform any PDF document into a structured neural practice set."
             color="emerald"
             onClick={() => triggerUpload('quiz')}
-            className="lg:col-span-2 border-emerald-500/20"
+            className="sm:col-span-2 border-emerald-500/20"
             badge="High-Efficiency"
           />
           <PrimaryAction 
@@ -449,43 +472,59 @@ const Dashboard: React.FC<DashboardProps> = ({ state, updateState }) => {
           />
         </section>
 
+        {/* Cognitive Heatmap */}
+        <section className="pt-8">
+           <div className="flex items-center gap-4 mb-6 px-2">
+              <div className="p-3 bg-indigo-500/10 rounded-2xl">
+                 <Grid className="w-6 h-6 text-indigo-400" />
+              </div>
+              <div>
+                 <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tighter leading-none">Neural Activity Matrix</h3>
+                 <p className="text-[9px] sm:text-[10px] font-black uppercase text-white/30 tracking-widest mt-1">Cognitive Consistency Heatmap</p>
+              </div>
+           </div>
+           <div className="glass p-6 sm:p-8 rounded-[2.5rem] border border-white/5 shadow-2xl overflow-hidden">
+              <CognitiveHeatmap state={state} />
+           </div>
+        </section>
+
         {/* Badge Gallery */}
         <section className="pt-8">
-           <div className="flex items-center justify-between mb-6 px-2">
+           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 px-2 gap-4">
               <div className="flex items-center gap-4">
                  <div className="p-3 bg-amber-500/10 rounded-2xl">
                     <Medal className="w-6 h-6 text-amber-400" />
                  </div>
                  <div>
-                    <h3 className="text-2xl font-black text-white uppercase tracking-tighter leading-none">Achievement Vault</h3>
-                    <p className="text-[10px] font-black uppercase text-white/30 tracking-widest mt-1">Synaptic Milestones Unlocked</p>
+                    <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tighter leading-none">Achievement Vault</h3>
+                    <p className="text-[9px] sm:text-[10px] font-black uppercase text-white/30 tracking-widest mt-1">Synaptic Milestones Unlocked</p>
                  </div>
               </div>
-              <div className="glass px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/40">
+              <div className="glass px-4 py-2 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-white/40 w-fit">
                  {state.user.badges?.length || 0} / 12 Badges
               </div>
            </div>
            
-           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
               {state.user.badges && state.user.badges.length > 0 ? (
                 state.user.badges.map((badge) => (
                   <motion.div 
                     key={badge.id}
                     whileHover={{ scale: 1.05, y: -5 }}
-                    className="glass p-6 rounded-3xl border border-white/5 flex flex-col items-center text-center group relative overflow-hidden"
+                    className="glass p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/5 flex flex-col items-center text-center group relative overflow-hidden"
                   >
                     <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div className="w-12 h-12 rounded-2xl bg-amber-500/20 flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
-                       {badge.icon === 'Zap' ? <Zap className="w-6 h-6 text-amber-400" /> : <Target className="w-6 h-6 text-amber-400" />}
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-amber-500/20 flex items-center justify-center mb-3 sm:mb-4 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
+                       {badge.icon === 'Zap' ? <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400" /> : <Target className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400" />}
                     </div>
-                    <h4 className="text-[11px] font-black text-white uppercase tracking-tighter mb-1">{badge.name}</h4>
-                    <p className="text-[8px] font-bold text-white/30 uppercase tracking-widest leading-tight">{badge.description}</p>
+                    <h4 className="text-[9px] sm:text-[11px] font-black text-white uppercase tracking-tighter mb-1">{badge.name}</h4>
+                    <p className="text-[7px] sm:text-[8px] font-bold text-white/30 uppercase tracking-widest leading-tight">{badge.description}</p>
                   </motion.div>
                 ))
               ) : (
-                <div className="col-span-full glass p-12 rounded-[2.5rem] border border-dashed border-white/10 flex flex-col items-center text-center">
-                   <Trophy className="w-12 h-12 text-white/5 mb-4" />
-                   <p className="text-sm font-bold text-white/20 uppercase tracking-[0.3em]">No synaptic milestones detected yet</p>
+                <div className="col-span-full glass p-8 sm:p-12 rounded-[2rem] sm:rounded-[2.5rem] border border-dashed border-white/10 flex flex-col items-center text-center">
+                   <Trophy className="w-10 h-10 sm:w-12 sm:h-12 text-white/5 mb-4" />
+                   <p className="text-xs sm:text-sm font-bold text-white/20 uppercase tracking-[0.3em]">No synaptic milestones detected yet</p>
                 </div>
               )}
            </div>
@@ -579,13 +618,13 @@ const SmallStat: React.FC<{ icon: any, label: string, value: any, color: string,
     whileHover={{ scale: 1.05, y: -5 }}
     whileTap={{ scale: 0.95 }}
     onClick={onClick} 
-    className={`glass p-5 rounded-3xl border border-white/5 flex flex-col items-center text-center group hover:bg-white/[0.02] transition-colors ${onClick ? 'cursor-pointer active:scale-95' : 'cursor-default'}`}
+    className={`glass p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-white/5 flex flex-col items-center text-center group hover:bg-white/[0.02] transition-colors ${onClick ? 'cursor-pointer active:scale-95' : 'cursor-default'}`}
   >
-    <div className={`w-10 h-10 rounded-xl bg-${color}-500/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
-      <Icon className={`w-5 h-5 text-${color}-400`} />
+    <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-${color}-500/10 flex items-center justify-center mb-2 sm:mb-3 group-hover:scale-110 transition-transform`}>
+      <Icon className={`w-4 h-4 sm:w-5 sm:h-5 text-${color}-400`} />
     </div>
-    <p className="text-[9px] font-black uppercase tracking-widest text-white/20 mb-1">{label}</p>
-    <p className="text-2xl font-black text-white tracking-tighter">{value}</p>
+    <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-white/20 mb-0.5 sm:mb-1">{label}</p>
+    <p className="text-xl sm:text-2xl font-black text-white tracking-tighter">{value}</p>
   </motion.button>
 );
 
@@ -605,21 +644,21 @@ const PrimaryAction: React.FC<{
     layout
     onClick={onClick}
     disabled={disabled}
-    className={`glass p-8 rounded-[2.5rem] border border-white/5 text-left flex flex-col justify-between group hover:bg-white/[0.04] hover:border-white/10 transition-all shadow-2xl relative overflow-hidden ${className} ${disabled ? 'opacity-40 grayscale cursor-not-allowed' : ''}`}
+    className={`glass p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-white/5 text-left flex flex-col justify-between group hover:bg-white/[0.04] hover:border-white/10 transition-all shadow-2xl relative overflow-hidden ${className} ${disabled ? 'opacity-40 grayscale cursor-not-allowed' : ''}`}
   >
     <div className="relative z-10">
-      <div className="flex items-center justify-between mb-6">
-        <div className={`w-14 h-14 rounded-2xl bg-${color}-500/10 flex items-center justify-center shadow-inner ${!disabled && 'group-hover:scale-110'} transition-transform`}>
-          <Icon className={`w-7 h-7 text-${color}-400`} />
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-${color}-500/10 flex items-center justify-center shadow-inner ${!disabled && 'group-hover:scale-110'} transition-transform`}>
+          <Icon className={`w-6 h-6 sm:w-7 sm:h-7 text-${color}-400`} />
         </div>
-        {badge && <span className="bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-lg">{badge}</span>}
+        {badge && <span className="bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-[8px] sm:text-[9px] font-black px-2 sm:px-3 py-1 rounded-full uppercase tracking-widest shadow-lg">{badge}</span>}
       </div>
-      <h3 className="font-brand text-2xl font-black text-white tracking-tight mb-2">{title}</h3>
-      <p className="text-sm text-slate-400 font-medium leading-relaxed max-w-[280px] group-hover:text-slate-300 transition-colors">{description}</p>
+      <h3 className="font-brand text-xl sm:text-2xl font-black text-white tracking-tight mb-1 sm:mb-2">{title}</h3>
+      <p className="text-xs sm:text-sm text-slate-400 font-medium leading-relaxed max-w-[280px] group-hover:text-slate-300 transition-colors">{description}</p>
     </div>
-    <div className="mt-8 flex items-center justify-between pt-6 border-t border-white/5 relative z-10">
-      <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-white/30 group-hover:text-white transition-colors">
-        {disabled ? 'Vault Empty' : 'Initialize Protocol'} <ArrowRight className="w-4 h-4" />
+    <div className="mt-6 sm:mt-8 flex items-center justify-between pt-4 sm:pt-6 border-t border-white/5 relative z-10">
+      <div className="flex items-center gap-2 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-white/30 group-hover:text-white transition-colors">
+        {disabled ? 'Vault Empty' : 'Initialize Protocol'} <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
       </div>
     </div>
   </motion.button>

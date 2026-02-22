@@ -99,9 +99,9 @@ const SettingsPage: React.FC<SettingsProps> = ({ state, updateState }) => {
         <h2 className="text-base font-black uppercase tracking-widest opacity-50 flex items-center gap-3">
            <User className="w-5 h-5 text-indigo-400" /> Identification
         </h2>
-        <div className="glass p-8 rounded-[2.5rem] flex flex-col md:flex-row items-center gap-10 border border-white/5 shadow-2xl">
+        <div className="glass p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] flex flex-col sm:flex-row items-center gap-6 sm:gap-10 border border-white/5 shadow-2xl">
            <div className="relative group shrink-0">
-              <img src={state.user.avatar} className="w-32 h-32 rounded-full border-4 border-white/10 group-hover:border-indigo-500/50 transition-all object-cover shadow-2xl" alt="Avatar" />
+              <img src={state.user.avatar} className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white/10 group-hover:border-indigo-500/50 transition-all object-cover shadow-2xl" alt="Avatar" />
               <input 
                 type="file" 
                 ref={avatarInputRef} 
@@ -111,20 +111,20 @@ const SettingsPage: React.FC<SettingsProps> = ({ state, updateState }) => {
               />
               <button 
                 onClick={() => avatarInputRef.current?.click()}
-                className={`absolute bottom-0 right-0 p-3 bg-${theme.accentColor} rounded-full border border-white/20 hover:scale-110 transition-transform shadow-2xl`}
+                className={`absolute bottom-0 right-0 p-2.5 sm:p-3 bg-${theme.accentColor} rounded-full border border-white/20 hover:scale-110 transition-transform shadow-2xl`}
               >
-                <UploadIcon className="w-5 h-5 text-white" />
+                <UploadIcon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </button>
            </div>
-           <div className="flex-1 space-y-4 text-center md:text-left w-full">
+           <div className="flex-1 space-y-4 text-center sm:text-left w-full">
               <input 
                 type="text" 
                 value={state.user.name}
                 onChange={(e) => updateState((prev: AppState) => ({ ...prev, user: { ...prev.user, name: e.target.value } }))}
-                className="bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-3xl font-black w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all text-white shadow-inner"
+                className="bg-white/5 border border-white/10 rounded-2xl px-5 sm:px-6 py-3 sm:py-4 text-2xl sm:text-3xl font-black w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all text-white shadow-inner text-center sm:text-left"
                 placeholder="Enter scholar name"
               />
-              <p className="opacity-40 text-sm font-medium">This moniker will be encoded into all generated report segments.</p>
+              <p className="opacity-40 text-xs sm:text-sm font-medium">This moniker will be encoded into all generated report segments.</p>
            </div>
         </div>
       </section>
@@ -134,7 +134,7 @@ const SettingsPage: React.FC<SettingsProps> = ({ state, updateState }) => {
         <h2 className="text-base font-black uppercase tracking-widest opacity-50 flex items-center gap-3">
            <Palette className="w-5 h-5 text-emerald-400" /> Neural Themes
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
            {(Object.values(THEMES)).map((t) => {
              const isLocked = t.unlockLevel && state.user.level < t.unlockLevel;
              const isUnlocked = state.user.unlockedThemes?.includes(t.id);
@@ -145,7 +145,7 @@ const SettingsPage: React.FC<SettingsProps> = ({ state, updateState }) => {
                  key={t.id}
                  disabled={effectivelyLocked}
                  onClick={() => updateState({ theme: t.id })}
-                 className={`relative p-6 rounded-[2rem] border-2 transition-all group overflow-hidden shadow-xl ${
+                 className={`relative p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] border-2 transition-all group overflow-hidden shadow-xl ${
                    state.theme === t.id 
                      ? `border-${t.accentColor} bg-${t.accentColor}/15` 
                      : effectivelyLocked 
@@ -154,19 +154,19 @@ const SettingsPage: React.FC<SettingsProps> = ({ state, updateState }) => {
                  }`}
                >
                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-xl bg-${t.accentColor}/20 flex items-center justify-center shrink-0 shadow-inner`}>
-                       {effectivelyLocked ? <Lock className="w-6 h-6 text-white/40" /> : <Star className={`w-6 h-6 text-${t.accentColor}`} />}
+                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-${t.accentColor}/20 flex items-center justify-center shrink-0 shadow-inner`}>
+                       {effectivelyLocked ? <Lock className="w-5 h-5 sm:w-6 sm:h-6 text-white/40" /> : <Star className={`w-5 h-5 sm:w-6 sm:h-6 text-${t.accentColor}`} />}
                     </div>
                     <div className="text-left">
-                       <span className="font-black text-lg text-white tracking-tight block">{t.name}</span>
+                       <span className="font-black text-base sm:text-lg text-white tracking-tight block">{t.name}</span>
                        {effectivelyLocked && (
-                         <span className="text-[9px] font-black uppercase text-rose-400 tracking-widest">Unlock at Level {t.unlockLevel}</span>
+                         <span className="text-[8px] sm:text-[9px] font-black uppercase text-rose-400 tracking-widest">Unlock at Level {t.unlockLevel}</span>
                        )}
                     </div>
                  </div>
                  {state.theme === t.id && (
-                   <div className={`absolute top-5 right-5 bg-${t.accentColor} rounded-full p-1.5 shadow-2xl animate-in zoom-in`}>
-                      <Check className="w-4 h-4 text-white" />
+                   <div className={`absolute top-4 right-4 sm:top-5 sm:right-5 bg-${t.accentColor} rounded-full p-1 sm:p-1.5 shadow-2xl animate-in zoom-in`}>
+                      <Check className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                    </div>
                  )}
                </button>
@@ -176,21 +176,21 @@ const SettingsPage: React.FC<SettingsProps> = ({ state, updateState }) => {
       </section>
 
       {/* Maintenance Controls */}
-      <div className="grid md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
         <section className="space-y-6">
           <h2 className="text-base font-black uppercase tracking-widest opacity-50 flex items-center gap-3">
              <Terminal className="w-5 h-5 text-amber-400" /> Runtime Tools
           </h2>
-          <div className="glass p-8 rounded-[2.5rem] flex items-center justify-between border border-white/5 shadow-2xl">
-             <div className="pr-6">
-                <p className="font-black text-xl text-white tracking-tight">Dev Diagnostics</p>
-                <p className="opacity-40 text-xs font-bold uppercase tracking-widest mt-1">Status: {state.devMode ? 'Active' : 'Standby'}</p>
+          <div className="glass p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] flex items-center justify-between border border-white/5 shadow-2xl">
+             <div className="pr-4 sm:pr-6">
+                <p className="font-black text-lg sm:text-xl text-white tracking-tight">Dev Diagnostics</p>
+                <p className="opacity-40 text-[10px] sm:text-xs font-bold uppercase tracking-widest mt-1">Status: {state.devMode ? 'Active' : 'Standby'}</p>
              </div>
              <button 
                onClick={() => updateState({ devMode: !state.devMode })}
-               className={`w-16 h-8 rounded-full transition-all relative shrink-0 shadow-inner ${state.devMode ? `bg-${theme.accentColor}` : 'bg-white/10'}`}
+               className={`w-14 sm:w-16 h-7 sm:h-8 rounded-full transition-all relative shrink-0 shadow-inner ${state.devMode ? `bg-${theme.accentColor}` : 'bg-white/10'}`}
              >
-                <div className={`absolute top-1 w-6 h-6 rounded-full bg-white transition-all shadow-xl ${state.devMode ? 'left-9' : 'left-1'}`}></div>
+                <div className={`absolute top-0.5 sm:top-1 w-6 h-6 rounded-full bg-white transition-all shadow-xl ${state.devMode ? 'left-7.5 sm:left-9' : 'left-0.5 sm:left-1'}`}></div>
              </button>
           </div>
         </section>

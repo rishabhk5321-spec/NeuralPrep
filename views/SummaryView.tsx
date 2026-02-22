@@ -114,38 +114,38 @@ const SummaryView: React.FC<SummaryViewProps> = ({ state, updateState }) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto pb-24 animate-in fade-in slide-in-from-bottom-6 duration-700">
-      <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 px-4">
-        <div className="space-y-4">
-          <button onClick={() => navigate('/')} className="group flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] opacity-40 hover:opacity-100 transition-all">
-             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Archives
+    <div className="max-w-4xl mx-auto pb-24 animate-in fade-in slide-in-from-bottom-6 duration-700 px-4 sm:px-0">
+      <div className="mb-8 sm:mb-12 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+        <div className="space-y-3 sm:space-y-4">
+          <button onClick={() => navigate('/')} className="group flex items-center gap-2 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] opacity-40 hover:opacity-100 transition-all">
+             <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:-translate-x-1 transition-transform" /> Back to Archives
           </button>
-          <h1 className="font-brand text-5xl font-black tracking-tighter text-white leading-none">{summary.title}</h1>
-          <div className="flex items-center gap-6">
-            <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] opacity-40">
-              <Clock className="w-3.5 h-3.5" /> {new Date(summary.timestamp).toLocaleDateString()}
+          <h1 className="font-brand text-3xl sm:text-5xl font-black tracking-tighter text-white leading-tight sm:leading-none">{summary.title}</h1>
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+            <span className="flex items-center gap-2 text-[8px] sm:text-[10px] font-black uppercase tracking-[0.3em] opacity-40">
+              <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> {new Date(summary.timestamp).toLocaleDateString()}
             </span>
-            <span className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-${theme.accentColor}`}>
-              <Zap className="w-3.5 h-3.5" /> Neural-Coaching Notes
+            <span className={`flex items-center gap-2 text-[8px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-${theme.accentColor}`}>
+              <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> Neural-Coaching Notes
             </span>
           </div>
         </div>
         
-        <div className="flex items-center gap-3">
-          <button onClick={handleCopy} className="glass px-6 py-4 rounded-2xl flex items-center gap-2 hover:bg-white/10 transition-all text-[11px] font-black uppercase tracking-widest">
-            {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 opacity-40" />}
-            {copied ? 'Copied' : 'Copy Notes'}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button onClick={handleCopy} className="flex-1 sm:flex-none glass px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 hover:bg-white/10 transition-all text-[9px] sm:text-[11px] font-black uppercase tracking-widest">
+            {copied ? <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4 opacity-40" />}
+            {copied ? 'Copied' : 'Copy'}
           </button>
           <button 
             onClick={handleExportPDF}
-            className={`bg-${theme.accentColor} text-white px-6 py-4 rounded-2xl flex items-center gap-2 hover:brightness-110 shadow-2xl transition-all text-[11px] font-black uppercase tracking-widest`}
+            className={`flex-1 sm:flex-none bg-${theme.accentColor} text-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 hover:brightness-110 shadow-2xl transition-all text-[9px] sm:text-[11px] font-black uppercase tracking-widest`}
           >
-            <Download className="w-4 h-4" /> Export PDF
+            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Export
           </button>
         </div>
       </div>
 
-      <div className="glass p-12 sm:p-20 rounded-[4rem] shadow-2xl relative overflow-hidden border border-white/5 bg-slate-900/40">
+      <div className="glass p-6 sm:p-12 md:p-20 rounded-[2.5rem] sm:rounded-[4rem] shadow-2xl relative overflow-hidden border border-white/5 bg-slate-900/40">
         <div className={`absolute top-0 right-0 w-[500px] h-[500px] bg-${theme.accentColor}/5 rounded-full blur-[140px] -z-10`}></div>
         <div className={`absolute bottom-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-${theme.accentColor}/20 to-transparent`}></div>
         

@@ -634,38 +634,38 @@ const QuizEngine: React.FC<QuizEngineProps> = ({ state, updateState, onDiscuss }
       <div className="max-w-5xl w-full h-full glass bg-[#0d0d16]/80 p-4 sm:p-6 rounded-[2.5rem] border border-white/10 flex flex-col relative animate-in zoom-in-95 duration-500 shadow-[0_0_150px_rgba(0,0,0,0.8)]">
         
         {/* TOP HUD BAR - REFINED */}
-        <div className="flex items-center justify-between text-white shrink-0 mb-6 border-b border-white/5 pb-4">
-           <div className="flex items-center gap-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between text-white shrink-0 mb-4 sm:mb-6 border-b border-white/5 pb-4 gap-4">
+           <div className="flex items-center gap-4 sm:gap-8">
               <div className="relative">
-                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-rose-500/50 mb-1">Neural Node</p>
-                <h2 className="text-4xl font-black tracking-tighter leading-none">
+                <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.5em] text-rose-500/50 mb-1">Neural Node</p>
+                <h2 className="text-2xl sm:text-4xl font-black tracking-tighter leading-none">
                   <span className="opacity-20">0</span>{currentIndex + 1}
                 </h2>
               </div>
-              <div className="h-10 w-[1px] bg-white/10"></div>
-              <div className="hidden lg:flex flex-col">
-                 <p className="text-[8px] font-black uppercase tracking-[0.4em] text-white/30 leading-none mb-2">Cognitive Synchronization</p>
-                 <div className="flex items-center gap-1.5">
+              <div className="h-8 sm:h-10 w-[1px] bg-white/10"></div>
+              <div className="flex flex-col">
+                 <p className="text-[7px] sm:text-[8px] font-black uppercase tracking-[0.4em] text-white/30 leading-none mb-2">Cognitive Synchronization</p>
+                 <div className="flex items-center gap-1 sm:gap-1.5">
                     {quiz.questions.map((_, i) => (
-                      <div key={i} className={`h-1.5 rounded-full transition-all duration-700 ${i === currentIndex ? 'bg-rose-500 w-10 shadow-[0_0_15px_rgba(244,63,94,0.6)]' : i < currentIndex ? 'bg-emerald-500 w-4' : 'bg-white/10 w-4'}`}></div>
+                      <div key={i} className={`h-1 sm:h-1.5 rounded-full transition-all duration-700 ${i === currentIndex ? 'bg-rose-500 w-6 sm:w-10 shadow-[0_0_15px_rgba(244,63,94,0.6)]' : i < currentIndex ? 'bg-emerald-500 w-2 sm:w-4' : 'bg-white/10 w-2 sm:w-4'}`}></div>
                     ))}
                  </div>
               </div>
            </div>
            
-           <div className="flex items-center gap-6">
-              <div className="flex flex-col items-end">
+           <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-6">
+              <div className="flex flex-col items-start sm:items-end">
                  <p className="text-[8px] font-black uppercase tracking-[0.4em] text-white/30 leading-none mb-1">Temporal Sync</p>
-                 <div className="flex items-center gap-3 text-3xl font-black tabular-nums tracking-tighter text-white">
-                    <Clock className="w-6 h-6 text-rose-500 animate-pulse" />
+                 <div className="flex items-center gap-2 sm:gap-3 text-2xl sm:text-3xl font-black tabular-nums tracking-tighter text-white">
+                    <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-rose-500 animate-pulse" />
                     <span>{formatTime(timer)}</span>
                  </div>
               </div>
               <button 
                 onClick={() => setIsPaused(true)} 
-                className="p-4 glass rounded-2xl hover:bg-white/10 transition-all active:scale-90 group border border-white/10"
+                className="p-3 sm:p-4 glass rounded-xl sm:rounded-2xl hover:bg-white/10 transition-all active:scale-90 group border border-white/10"
               >
-                <Pause className="w-6 h-6 text-white fill-current" />
+                <Pause className="w-5 h-5 sm:w-6 sm:h-6 text-white fill-current" />
               </button>
            </div>
         </div>
@@ -739,15 +739,15 @@ const QuizEngine: React.FC<QuizEngineProps> = ({ state, updateState, onDiscuss }
         </div>
 
         {/* BOTTOM HUD CONTROLS - COMPACT */}
-        <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between gap-4 shrink-0">
-           <div className="flex items-center gap-3">
-              <button onClick={handlePrev} disabled={currentIndex === 0 || isAnswerChecked} className="p-3.5 glass border-white/10 rounded-xl text-white disabled:opacity-5 hover:bg-white/10 transition-all shadow-lg active:scale-90"><ChevronLeft className="w-5 h-5" /></button>
-              <button onClick={() => navigate('/')} className="px-6 py-3.5 bg-rose-600/10 text-rose-400 border border-rose-500/20 rounded-xl font-black uppercase text-[9px] tracking-[0.2em] hover:bg-rose-600 hover:text-white transition-all shadow-xl">Abort</button>
+        <div className="mt-4 pt-4 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0 pb-safe">
+           <div className="flex items-center justify-between w-full sm:w-auto gap-3">
+              <button onClick={handlePrev} disabled={currentIndex === 0 || isAnswerChecked} className="p-3 sm:p-3.5 glass border-white/10 rounded-xl text-white disabled:opacity-5 hover:bg-white/10 transition-all shadow-lg active:scale-90 flex-1 sm:flex-none flex items-center justify-center"><ChevronLeft className="w-5 h-5" /></button>
+              <button onClick={() => navigate('/')} className="px-6 py-3 sm:py-3.5 bg-rose-600/10 text-rose-400 border border-rose-500/20 rounded-xl font-black uppercase text-[9px] tracking-[0.2em] hover:bg-rose-600 hover:text-white transition-all shadow-xl flex-1 sm:flex-none">Abort</button>
            </div>
 
-           <div className="flex items-center gap-3">
-              {!isAnswerChecked && <button onClick={() => setShowHint(!showHint)} className={`px-6 py-3.5 ${showHint ? 'bg-indigo-600 text-white' : 'glass text-indigo-400 border-indigo-500/10'} rounded-xl font-black uppercase text-[9px] tracking-[0.2em] transition-all flex items-center gap-2.5 shadow-xl`}><Lightbulb className="w-4 h-4" /> Hint [H]</button>}
-              <button onClick={handleCheckAnswer} disabled={!isAnswerValid} className={`px-10 py-3.5 rounded-xl font-black uppercase text-[11px] tracking-[0.3em] transition-all flex items-center gap-2.5
+           <div className="flex items-center justify-between w-full sm:w-auto gap-3">
+              {!isAnswerChecked && <button onClick={() => setShowHint(!showHint)} className={`px-6 py-3 sm:py-3.5 ${showHint ? 'bg-indigo-600 text-white' : 'glass text-indigo-400 border-indigo-500/10'} rounded-xl font-black uppercase text-[9px] tracking-[0.2em] transition-all flex items-center justify-center gap-2.5 shadow-xl flex-1 sm:flex-none`}><Lightbulb className="w-4 h-4" /> Hint [H]</button>}
+              <button onClick={handleCheckAnswer} disabled={!isAnswerValid} className={`px-10 py-3 sm:py-3.5 rounded-xl font-black uppercase text-[11px] tracking-[0.3em] transition-all flex items-center justify-center gap-2.5 flex-1 sm:flex-none
                   ${isAnswerValid ? 'bg-emerald-600 text-white hover:scale-105 active:scale-95 shadow-[0_0_40px_rgba(16,185,129,0.3)]' : 'bg-white/5 text-white/20 cursor-not-allowed border-white/5'}`}>Confirm <Zap className="w-5 h-5" /></button>
            </div>
         </div>

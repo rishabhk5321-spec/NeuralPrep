@@ -62,76 +62,76 @@ const PerformanceAnalysis: React.FC<AnalysisProps> = ({ state, updateState }) =>
   }
 
   return (
-    <div className="max-w-6xl mx-auto pb-32 animate-in fade-in slide-in-from-bottom-6 duration-1000">
-      <header className="mb-12 space-y-6">
-        <button onClick={() => navigate('/')} className="group flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] opacity-40 hover:opacity-100 transition-all">
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Dashboard
+    <div className="max-w-6xl mx-auto pb-32 animate-in fade-in slide-in-from-bottom-6 duration-1000 px-4 sm:px-0">
+      <header className="mb-8 sm:mb-12 space-y-4 sm:space-y-6">
+        <button onClick={() => navigate('/')} className="group flex items-center gap-2 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] opacity-40 hover:opacity-100 transition-all">
+          <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:-translate-x-1 transition-transform" /> Back to Dashboard
         </button>
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 sm:gap-8">
            <div className="space-y-2">
-             <h1 className="text-6xl font-black tracking-tighter text-white uppercase leading-none">AI Insight Index</h1>
-             <p className="text-indigo-400 font-black uppercase tracking-[0.4em] text-[10px]">Neural Brain Diagnostic</p>
+             <h1 className="text-4xl sm:text-6xl font-black tracking-tighter text-white uppercase leading-tight sm:leading-none">AI Insight Index</h1>
+             <p className="text-indigo-400 font-black uppercase tracking-[0.4em] text-[8px] sm:text-[10px]">Neural Brain Diagnostic</p>
            </div>
-           <div className="flex gap-4">
+           <div className="flex gap-3 sm:gap-4">
              <MetricBox icon={Activity} label="Precision" value={analysis.overview.accuracy + '%'} color="indigo" />
              <MetricBox icon={Trophy} label="Attempts" value={analysis.overview.total} color="emerald" />
            </div>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          <section className="glass p-10 rounded-[3rem] border border-white/5">
-             <h3 className="text-2xl font-black flex items-center gap-3 mb-8">
-               <AlertTriangle className="w-6 h-6 text-rose-500" /> Weakness Detection
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+        <div className="lg:col-span-2 space-y-6 sm:space-y-8">
+          <section className="glass p-6 sm:p-10 rounded-[2rem] sm:rounded-[3rem] border border-white/5">
+             <h3 className="text-xl sm:text-2xl font-black flex items-center gap-3 mb-6 sm:mb-8">
+               <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-rose-500" /> Weakness Detection
              </h3>
-             <div className="space-y-6">
+             <div className="space-y-4 sm:space-y-6">
                 {analysis.weakTopics.slice(0, 5).map((topic, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-6 rounded-3xl bg-white/[0.02] border border-white/5">
-                    <div>
-                      <p className="text-lg font-black text-white">{topic.topic}</p>
-                      <p className="text-[10px] opacity-40 font-black uppercase tracking-widest">Accuracy: {topic.accuracy}% • Speed: {topic.avgTime}s</p>
+                  <div key={idx} className="flex items-center justify-between p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-white/[0.02] border border-white/5">
+                    <div className="min-w-0 flex-1 pr-4">
+                      <p className="text-base sm:text-lg font-black text-white truncate">{topic.topic}</p>
+                      <p className="text-[8px] sm:text-[10px] opacity-40 font-black uppercase tracking-widest truncate">Acc: {topic.accuracy}% • Speed: {topic.avgTime}s</p>
                     </div>
-                    <div className="text-right">
-                       <p className="text-2xl font-black text-rose-500">{(topic.weaknessScore * 100).toFixed(0)}%</p>
+                    <div className="text-right shrink-0">
+                       <p className="text-xl sm:text-2xl font-black text-rose-500">{(topic.weaknessScore * 100).toFixed(0)}%</p>
                     </div>
                   </div>
                 ))}
              </div>
           </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-             <section className="glass p-10 rounded-[3.5rem] border border-white/5">
-                <h3 className="text-xl font-black mb-8 flex items-center gap-3"><Layers className="w-5 h-5 text-amber-500" /> Pattern Matrix</h3>
-                <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
+             <section className="glass p-6 sm:p-10 rounded-[2rem] sm:rounded-[3.5rem] border border-white/5">
+                <h3 className="text-lg sm:text-xl font-black mb-6 sm:mb-8 flex items-center gap-3"><Layers className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" /> Pattern Matrix</h3>
+                <div className="space-y-4 sm:space-y-6">
                    {analysis.patterns.map((p, idx) => (
                      <div key={idx} className="space-y-2">
-                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                        <div className="flex justify-between text-[8px] sm:text-[10px] font-black uppercase tracking-widest">
                            <span className="opacity-40">{p.name}</span>
                            <span className="text-rose-400">{p.errorRate}%</span>
                         </div>
-                        <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                        <div className="h-1.5 sm:h-2 w-full bg-white/5 rounded-full overflow-hidden">
                            <div className="h-full bg-rose-500" style={{ width: `${p.errorRate}%` }}></div>
                         </div>
                      </div>
                    ))}
                 </div>
              </section>
-             <section className="glass p-10 rounded-[3.5rem] border border-white/5 flex flex-col items-center justify-center">
-                <p className="text-5xl font-black mb-2">{analysis.speed.avgSeconds}s</p>
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Average Response Time</p>
+             <section className="glass p-6 sm:p-10 rounded-[2rem] sm:rounded-[3.5rem] border border-white/5 flex flex-col items-center justify-center min-h-[150px]">
+                <p className="text-4xl sm:text-5xl font-black mb-2">{analysis.speed.avgSeconds}s</p>
+                <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Average Response Time</p>
              </section>
           </div>
         </div>
 
-        <div className="space-y-8">
-           <section className="glass p-10 rounded-[3.5rem] border border-white/5 h-full flex flex-col">
-              <h3 className="text-2xl font-black mb-10 flex items-center gap-3">
-                 <Sparkles className="w-6 h-6 text-indigo-400 animate-pulse" /> Brain Recommendations
+        <div className="space-y-6 sm:space-y-8">
+           <section className="glass p-6 sm:p-10 rounded-[2rem] sm:rounded-[3.5rem] border border-white/5 h-full flex flex-col min-h-[300px]">
+              <h3 className="text-xl sm:text-2xl font-black mb-6 sm:mb-10 flex items-center gap-3">
+                 <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-400 animate-pulse" /> Brain Recommendations
               </h3>
               <div className="flex-1 overflow-y-auto scroll-slim">
-                {isGenerating ? <div className="animate-pulse opacity-20">Scanning...</div> : 
-                 <div className="prose prose-invert whitespace-pre-wrap text-slate-300 font-medium leading-[2]">{recommendations}</div>}
+                {isGenerating ? <div className="animate-pulse opacity-20 text-xs uppercase font-black tracking-widest">Scanning...</div> : 
+                 <div className="prose prose-invert whitespace-pre-wrap text-slate-300 font-medium leading-[1.8] sm:leading-[2] text-sm sm:text-base">{recommendations}</div>}
               </div>
            </section>
         </div>
@@ -141,11 +141,11 @@ const PerformanceAnalysis: React.FC<AnalysisProps> = ({ state, updateState }) =>
 };
 
 const MetricBox: React.FC<{ icon: any, label: string, value: any, color: string }> = ({ icon: Icon, label, value, color }) => (
-  <div className="glass px-8 py-4 rounded-3xl border border-white/10 flex items-center gap-6">
-    <Icon className={`w-6 h-6 text-${color}-400`} />
-    <div className="flex flex-col">
-       <span className="text-[9px] font-black uppercase tracking-widest opacity-30">{label}</span>
-       <span className="text-2xl font-black text-white">{value}</span>
+  <div className="glass px-4 sm:px-8 py-3 sm:py-4 rounded-2xl sm:rounded-3xl border border-white/10 flex items-center gap-4 sm:gap-6 flex-1 sm:flex-none">
+    <Icon className={`w-5 h-5 sm:w-6 sm:h-6 text-${color}-400 shrink-0`} />
+    <div className="flex flex-col min-w-0">
+       <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest opacity-30 truncate">{label}</span>
+       <span className="text-xl sm:text-2xl font-black text-white truncate">{value}</span>
     </div>
   </div>
 );

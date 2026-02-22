@@ -74,30 +74,30 @@ const RecentItems: React.FC<RecentItemsProps> = ({ state, updateState }) => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20 px-2">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="max-w-5xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-24 sm:pb-20 px-4 sm:px-2">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
         <div className="space-y-1">
-          <h1 className="text-4xl font-black uppercase tracking-tighter text-white">The Neural Vault</h1>
-          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30">Historical Cognitive Records</p>
+          <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter text-white">The Neural Vault</h1>
+          <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.4em] text-white/30">Historical Cognitive Records</p>
         </div>
-        <div className="flex items-center gap-4 glass px-5 py-3 rounded-2xl w-full md:w-80 border border-white/5 shadow-xl focus-within:border-indigo-500/30 transition-all">
-           <Search className="w-5 h-5 opacity-30 text-indigo-400" />
+        <div className="flex items-center gap-3 sm:gap-4 glass px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl w-full sm:w-80 border border-white/5 shadow-xl focus-within:border-indigo-500/30 transition-all">
+           <Search className="w-4 h-4 sm:w-5 sm:h-5 opacity-30 text-indigo-400" />
            <input 
              type="text" 
              placeholder="Search knowledge..." 
-             className="bg-transparent border-none focus:outline-none w-full font-bold text-sm text-white placeholder:text-white/20"
+             className="bg-transparent border-none focus:outline-none w-full font-bold text-xs sm:text-sm text-white placeholder:text-white/20"
              value={searchTerm}
              onChange={(e) => setSearchTerm(e.target.value)}
            />
         </div>
       </header>
 
-      <div className="flex items-center gap-3 overflow-x-auto pb-4 scroll-slim">
+      <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-4 scroll-slim">
         {(['all', 'quiz', 'flash', 'summary'] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-8 py-2.5 rounded-xl transition-all text-[10px] font-black uppercase tracking-[0.2em] whitespace-nowrap border ${
+            className={`px-6 sm:px-8 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] whitespace-nowrap border ${
               filter === f ? `bg-white text-slate-950 border-white shadow-xl scale-105` : 'glass border-white/5 hover:bg-white/5 text-white/40'
             }`}
           >
@@ -122,56 +122,58 @@ const RecentItems: React.FC<RecentItemsProps> = ({ state, updateState }) => {
             return (
               <div 
                 key={`${item.type}-${item.id}`}
-                className={`glass rounded-3xl border border-white/5 transition-all overflow-hidden ${isExpanded ? 'bg-white/[0.03] ring-1 ring-white/10' : 'hover:bg-white/[0.01]'}`}
+                className={`glass rounded-2xl sm:rounded-3xl border border-white/5 transition-all overflow-hidden ${isExpanded ? 'bg-white/[0.03] ring-1 ring-white/10' : 'hover:bg-white/[0.01]'}`}
               >
                 <div 
-                  className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer"
+                  className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 cursor-pointer"
                   onClick={() => handleOpenItem(item)}
                 >
-                  <div className="flex items-center gap-4 flex-1 min-w-0">
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-inner
+                  <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 shadow-inner
                       ${isQuiz ? 'bg-indigo-500/10 text-indigo-400' : item.type === 'flash' ? 'bg-amber-500/10 text-amber-400' : 'bg-cyan-500/10 text-cyan-400'}`}>
-                      {isQuiz ? <GraduationCap className="w-6 h-6" /> : item.type === 'flash' ? <Layers className="w-6 h-6" /> : <BookOpen className="w-6 h-6" />}
+                      {isQuiz ? <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6" /> : item.type === 'flash' ? <Layers className="w-5 h-5 sm:w-6 sm:h-6" /> : <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-lg text-white truncate">{item.title}</h3>
-                      <div className="flex items-center gap-4 text-[9px] font-black uppercase tracking-widest text-white/20">
-                        <span className="flex items-center gap-1.5"><Clock className="w-3 h-3" /> {new Date(item.timestamp).toLocaleDateString()}</span>
-                        {isQuiz && item.score !== undefined && <span className="flex items-center gap-1.5 text-emerald-400/60"><Target className="w-3 h-3" /> Precision: {item.score}%</span>}
+                      <h3 className="font-bold text-base sm:text-lg text-white truncate">{item.title}</h3>
+                      <div className="flex items-center gap-3 sm:gap-4 text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-white/20">
+                        <span className="flex items-center gap-1.5"><Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> {new Date(item.timestamp).toLocaleDateString()}</span>
+                        {isQuiz && item.score !== undefined && <span className="flex items-center gap-1.5 text-emerald-400/60"><Target className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> {item.score}%</span>}
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    {isQuiz && (
-                      <>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleReattempt(item.id); }}
-                          className="flex items-center gap-2 px-4 py-2 bg-indigo-500 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg"
-                        >
-                          <RotateCcw className="w-3.5 h-3.5" /> Reattempt
-                        </button>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleOpenReport(item.id); }}
-                          className="flex items-center gap-2 px-4 py-2 glass border-white/10 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-white/10 transition-all"
-                        >
-                          <FileText className="w-3.5 h-3.5" /> Latest Report
-                        </button>
-                        {hasMultipleReports && (
+                  <div className="flex items-center justify-between sm:justify-end gap-2">
+                    <div className="flex items-center gap-2 flex-1 sm:flex-none">
+                      {isQuiz && (
+                        <>
                           <button 
-                            onClick={(e) => { e.stopPropagation(); setExpandedQuizId(isExpanded ? null : item.id); }}
-                            className="p-2 glass border-white/10 rounded-xl text-white/40 hover:text-white transition-all"
+                            onClick={(e) => { e.stopPropagation(); handleReattempt(item.id); }}
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 bg-indigo-500 text-white rounded-lg sm:rounded-xl text-[8px] sm:text-[9px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg"
                           >
-                            {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                            <RotateCcw className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> Reattempt
                           </button>
-                        )}
-                      </>
-                    )}
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleOpenReport(item.id); }}
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 glass border-white/10 text-white rounded-lg sm:rounded-xl text-[8px] sm:text-[9px] font-black uppercase tracking-widest hover:bg-white/10 transition-all"
+                          >
+                            <FileText className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> Report
+                          </button>
+                          {hasMultipleReports && (
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); setExpandedQuizId(isExpanded ? null : item.id); }}
+                              className="p-2 glass border-white/10 rounded-lg sm:rounded-xl text-white/40 hover:text-white transition-all"
+                            >
+                              {isExpanded ? <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5" /> : <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5" />}
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
                     <button 
                       onClick={(e) => handleDelete(item.id, item.type, e)}
-                      className="p-2.5 hover:bg-rose-500/15 text-rose-500 rounded-xl opacity-30 hover:opacity-100 transition-all"
+                      className="p-2 sm:p-2.5 hover:bg-rose-500/15 text-rose-500 rounded-lg sm:rounded-xl opacity-30 hover:opacity-100 transition-all"
                     >
-                      <Trash2 className="w-5 h-5" />
+                      <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                   </div>
                 </div>
